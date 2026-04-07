@@ -4,7 +4,6 @@ apktap CLI — Typer subcommand group for HTTP traffic capture via Frida.
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -37,13 +36,27 @@ def _require_frida():
 @app.callback(invoke_without_command=True)
 def _default(
     ctx: typer.Context,
-    package: Optional[str] = typer.Argument(None, help="Android package name (e.g. com.example.app)"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output HAR file path"),
-    device: Optional[str] = typer.Option(None, "--device", "-d", help="Device ID (for multiple devices)"),
-    spawn: bool = typer.Option(True, "--spawn/--no-spawn", help="Spawn app vs. attach to running process"),
-    timeout: int = typer.Option(0, "--timeout", "-t", help="Seconds to capture (0 = until Ctrl+C)"),
-    filter_host: Optional[str] = typer.Option(None, "--filter-host", help="Only capture requests to this host"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show each request in real-time"),
+    package: Optional[str] = typer.Argument(
+        None, help="Android package name (e.g. com.example.app)"
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o", help="Output HAR file path"
+    ),
+    device: Optional[str] = typer.Option(
+        None, "--device", "-d", help="Device ID (for multiple devices)"
+    ),
+    spawn: bool = typer.Option(
+        True, "--spawn/--no-spawn", help="Spawn app vs. attach to running process"
+    ),
+    timeout: int = typer.Option(
+        0, "--timeout", "-t", help="Seconds to capture (0 = until Ctrl+C)"
+    ),
+    filter_host: Optional[str] = typer.Option(
+        None, "--filter-host", help="Only capture requests to this host"
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show each request in real-time"
+    ),
 ):
     """Capture HTTP traffic from an Android app using Frida hooks.
 
@@ -138,7 +151,11 @@ def hooks():
 
     hook_info = [
         ("okhttp.js", "OkHttp3", "Most Android apps using Retrofit / OkHttp"),
-        ("urlconnection.js", "java.net.HttpURLConnection", "Legacy Java HTTP connections"),
+        (
+            "urlconnection.js",
+            "java.net.HttpURLConnection",
+            "Legacy Java HTTP connections",
+        ),
         ("webview.js", "Android WebView", "HTTP traffic from WebView components"),
         ("dio.js", "Dart Dio (Flutter)", "Flutter apps — experimental, see docs"),
     ]

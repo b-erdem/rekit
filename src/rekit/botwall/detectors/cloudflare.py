@@ -17,15 +17,30 @@ class CloudflareDetector(Detector):
 
     # ── body patterns that indicate active challenge pages ──────────────
     _CHALLENGE_PATTERNS = [
-        (re.compile(r"cf-browser-verification", re.I), "cf-browser-verification page element"),
-        (re.compile(r"challenge-platform", re.I), "challenge-platform script reference"),
-        (re.compile(r"Checking your browser", re.I), "'Checking your browser' interstitial text"),
+        (
+            re.compile(r"cf-browser-verification", re.I),
+            "cf-browser-verification page element",
+        ),
+        (
+            re.compile(r"challenge-platform", re.I),
+            "challenge-platform script reference",
+        ),
+        (
+            re.compile(r"Checking your browser", re.I),
+            "'Checking your browser' interstitial text",
+        ),
         (re.compile(r"cf-chl-bypass", re.I), "cf-chl-bypass token reference"),
-        (re.compile(r"managed_checking_msg", re.I), "Managed Challenge checking message"),
+        (
+            re.compile(r"managed_checking_msg", re.I),
+            "Managed Challenge checking message",
+        ),
     ]
 
     _TURNSTILE_PATTERNS = [
-        (re.compile(r"challenges\.cloudflare\.com/turnstile", re.I), "Turnstile widget script"),
+        (
+            re.compile(r"challenges\.cloudflare\.com/turnstile", re.I),
+            "Turnstile widget script",
+        ),
         (re.compile(r"cf-turnstile", re.I), "cf-turnstile element"),
     ]
 

@@ -30,6 +30,7 @@ console = Console()
 # list command
 # ---------------------------------------------------------------------------
 
+
 @app.command("list")
 def list_profiles() -> None:
     """Show all available TLS fingerprint profiles."""
@@ -62,11 +63,16 @@ def list_profiles() -> None:
 # probe command (default)
 # ---------------------------------------------------------------------------
 
+
 @app.command("probe")
 def probe(
     url: str = typer.Argument(..., help="Target URL to probe (HTTPS)"),
-    timeout: int = typer.Option(10, "--timeout", "-t", help="Request timeout in seconds"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Write JSON report to file"),
+    timeout: int = typer.Option(
+        10, "--timeout", "-t", help="Request timeout in seconds"
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o", help="Write JSON report to file"
+    ),
     fingerprints: Optional[str] = typer.Option(
         None,
         "--fingerprints",
@@ -74,7 +80,9 @@ def probe(
         help="Comma-separated profile names to test (e.g. chrome_120,safari_18_0)",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed output"),
-    workers: int = typer.Option(5, "--workers", "-w", help="Number of concurrent probes"),
+    workers: int = typer.Option(
+        5, "--workers", "-w", help="Number of concurrent probes"
+    ),
 ) -> None:
     """Probe a target URL with multiple TLS fingerprint profiles."""
     _run_probe(url, timeout, output, fingerprints, verbose, workers)
@@ -83,6 +91,7 @@ def probe(
 # ---------------------------------------------------------------------------
 # Shared implementation
 # ---------------------------------------------------------------------------
+
 
 def _run_probe(
     url: str,
@@ -101,7 +110,7 @@ def _run_probe(
                 "[yellow]Warning:[/yellow] TLS fingerprinting is meaningless over plain HTTP. "
                 "Switching to HTTPS."
             )
-            url = "https://" + url[len("http://"):]
+            url = "https://" + url[len("http://") :]
         else:
             url = "https://" + url
 
@@ -129,11 +138,15 @@ def _run_probe(
 
     console.print(f"\n[bold]ja3probe[/bold] targeting [cyan]{url}[/cyan]")
     n_profiles = len(profiles_to_test) if profiles_to_test else len(PROFILES)
-    console.print(f"Testing {n_profiles} fingerprint profiles with {workers} workers ...\n")
+    console.print(
+        f"Testing {n_profiles} fingerprint profiles with {workers} workers ...\n"
+    )
 
     # Run probes
     try:
-        results = probe_all(url, profiles=profiles_to_test, timeout=timeout, workers=workers)
+        results = probe_all(
+            url, profiles=profiles_to_test, timeout=timeout, workers=workers
+        )
     except ImportError as exc:
         console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(1)

@@ -100,8 +100,7 @@ def parse_har(path: Union[str, Path]) -> List[HttpExchange]:
 
     if "log" not in data:
         raise ValueError(
-            f"Invalid HAR format in {path}: missing 'log' key. "
-            "Expected HAR 1.2 format."
+            f"Invalid HAR format in {path}: missing 'log' key. Expected HAR 1.2 format."
         )
 
     log = data["log"]
@@ -174,6 +173,7 @@ def _parse_har_entry(entry: Dict[str, Any], index: int) -> Optional[HttpExchange
             encoding = content.get("encoding", "")
             if encoding == "base64":
                 import base64
+
                 try:
                     response_body = base64.b64decode(response_text)
                 except Exception:

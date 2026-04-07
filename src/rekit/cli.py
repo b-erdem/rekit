@@ -29,12 +29,30 @@ def _register_subcommands():
     from rekit.botwall.cli import app as botwall_app
     from rekit.schemadiff.cli import app as schemadiff_app
 
-    app.add_typer(hargen_app, name="hargen", help="Generate Python API client from captured HTTP traffic")
-    app.add_typer(apktap_app, name="apktap", help="Hook into Android app HTTP layer, capture traffic")
-    app.add_typer(apkmap_app, name="apkmap", help="Scan decompiled APK, map API endpoints and models")
-    app.add_typer(ja3probe_app, name="ja3probe", help="Test which TLS fingerprints a target accepts")
+    app.add_typer(
+        hargen_app,
+        name="hargen",
+        help="Generate Python API client from captured HTTP traffic",
+    )
+    app.add_typer(
+        apktap_app,
+        name="apktap",
+        help="Hook into Android app HTTP layer, capture traffic",
+    )
+    app.add_typer(
+        apkmap_app,
+        name="apkmap",
+        help="Scan decompiled APK, map API endpoints and models",
+    )
+    app.add_typer(
+        ja3probe_app,
+        name="ja3probe",
+        help="Test which TLS fingerprints a target accepts",
+    )
     app.add_typer(botwall_app, name="botwall", help="Identify bot protection systems")
-    app.add_typer(schemadiff_app, name="schemadiff", help="Compare API response schemas")
+    app.add_typer(
+        schemadiff_app, name="schemadiff", help="Compare API response schemas"
+    )
 
 
 _register_subcommands()
@@ -48,6 +66,7 @@ def main(
     """[bold]rekit[/bold] — Reverse Engineering Toolkit for Mobile APIs"""
     if version:
         from rekit import __version__
+
         typer.echo(f"rekit {__version__}")
         raise typer.Exit()
 

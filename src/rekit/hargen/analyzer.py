@@ -205,13 +205,9 @@ def analyze(
     # Filter by base URL if specified
     if base_url_filter:
         filtered = base_url_filter.rstrip("/")
-        exchanges = [
-            e for e in exchanges if e.url.startswith(filtered)
-        ]
+        exchanges = [e for e in exchanges if e.url.startswith(filtered)]
         if not exchanges:
-            logger.warning(
-                "No exchanges match base_url_filter=%r", base_url_filter
-            )
+            logger.warning("No exchanges match base_url_filter=%r", base_url_filter)
             return ApiSpec(base_url=filtered)
 
     # Determine the most common base URL (scheme + host)
@@ -403,9 +399,9 @@ def _group_into_endpoints(
 
     Returns a dict mapping (method, pattern, path_param_names) -> [exchanges].
     """
-    groups: Dict[
-        Tuple[str, str, Tuple[str, ...]], List[HttpExchange]
-    ] = defaultdict(list)
+    groups: Dict[Tuple[str, str, Tuple[str, ...]], List[HttpExchange]] = defaultdict(
+        list
+    )
 
     for ex in exchanges:
         if not ex.url.startswith(base_url):
@@ -639,9 +635,7 @@ def _infer_schema(samples: List[Any]) -> List[FieldSchema]:
                     nested=element_schema if isinstance(all_items[0], dict) else None,
                 )
             ]
-        return [
-            FieldSchema(name="_items", type_str="List[Any]", optional=False)
-        ]
+        return [FieldSchema(name="_items", type_str="List[Any]", optional=False)]
     else:
         return [
             FieldSchema(

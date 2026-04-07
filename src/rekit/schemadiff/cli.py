@@ -40,6 +40,7 @@ console = Console(stderr=True)
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _load_json(path: Path) -> dict:
     """Load and parse a JSON file with clear error messages."""
     if not path.exists():
@@ -53,11 +54,15 @@ def _load_json(path: Path) -> dict:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except json.JSONDecodeError as exc:
-        console.print(f"[red]Error:[/red] Invalid JSON in {path.name}: {exc.msg} "
-                       f"(line {exc.lineno}, col {exc.colno})")
+        console.print(
+            f"[red]Error:[/red] Invalid JSON in {path.name}: {exc.msg} "
+            f"(line {exc.lineno}, col {exc.colno})"
+        )
         raise typer.Exit(1)
     except UnicodeDecodeError:
-        console.print(f"[red]Error:[/red] Cannot read {path.name} — not valid UTF-8 text.")
+        console.print(
+            f"[red]Error:[/red] Cannot read {path.name} — not valid UTF-8 text."
+        )
         raise typer.Exit(1)
 
     return data
@@ -70,7 +75,9 @@ def _resolve_files(paths: List[Path]) -> List[Path]:
         if p.is_dir():
             json_files = sorted(p.glob("*.json"))
             if not json_files:
-                console.print(f"[yellow]Warning:[/yellow] No .json files in directory: {p}")
+                console.print(
+                    f"[yellow]Warning:[/yellow] No .json files in directory: {p}"
+                )
             resolved.extend(json_files)
         elif p.is_file():
             resolved.append(p)
@@ -83,7 +90,7 @@ def _resolve_files(paths: List[Path]) -> List[Path]:
 def _derive_labels(files: List[Path], user_labels: Optional[str]) -> List[str]:
     """Derive labels from user input or file stems."""
     if user_labels:
-        labels = [l.strip() for l in user_labels.split(",")]
+        labels = [label.strip() for label in user_labels.split(",")]
         if len(labels) != len(files):
             console.print(
                 f"[red]Error:[/red] Got {len(labels)} labels but {len(files)} files. "
@@ -143,6 +150,7 @@ def _output_result(
 # ---------------------------------------------------------------------------
 # compare command (default)
 # ---------------------------------------------------------------------------
+
 
 @app.command()
 def compare(
@@ -219,23 +227,35 @@ def compare(
         # Handle top-level arrays: infer schema of first element
         if isinstance(data, list):
             if not data:
-                console.print(f"[yellow]Warning:[/yellow] {path.name} is an empty array, skipping.")
+                console.print(
+                    f"[yellow]Warning:[/yellow] {path.name} is an empty array, skipping."
+                )
                 continue
-            console.print(f"  [dim]{path.name} is an array ({len(data)} items), using merged element schema.[/dim]")
-            data = data[0] if len(data) == 1 else data[0]  # TODO: merge multiple elements
+            console.print(
+                f"  [dim]{path.name} is an array ({len(data)} items), using merged element schema.[/dim]"
+            )
+            data = (
+                data[0] if len(data) == 1 else data[0]
+            )  # TODO: merge multiple elements
             if not isinstance(data, dict):
-                console.print(f"[yellow]Warning:[/yellow] {path.name} array elements are not objects, skipping.")
+                console.print(
+                    f"[yellow]Warning:[/yellow] {path.name} array elements are not objects, skipping."
+                )
                 continue
 
         if not isinstance(data, dict):
-            console.print(f"[yellow]Warning:[/yellow] {path.name} is not a JSON object, skipping.")
+            console.print(
+                f"[yellow]Warning:[/yellow] {path.name} is not a JSON object, skipping."
+            )
             continue
 
         schema = infer_schema(data, max_depth=depth)
         schemas.append((label, schema))
 
     if len(schemas) < 2:
-        console.print("[red]Error:[/red] Need at least 2 valid object schemas to compare.")
+        console.print(
+            "[red]Error:[/red] Need at least 2 valid object schemas to compare."
+        )
         raise typer.Exit(1)
 
     result = compare_schemas(schemas)
@@ -245,6 +265,7 @@ def compare(
 # ---------------------------------------------------------------------------
 # from-har command
 # ---------------------------------------------------------------------------
+
 
 @app.command("from-har")
 def from_har(
@@ -338,6 +359,7 @@ def from_har(
         path = parsed.path or "/"
         # Strip numeric IDs from path for grouping
         import re
+
         normalised = re.sub(r"/\d+(?=/|$)", "/{id}", path)
 
         if endpoint and endpoint not in normalised:
@@ -362,7 +384,9 @@ def from_har(
 
     # Process each endpoint group
     for ep_label, responses in sorted(endpoint_responses.items()):
-        console.print(f"\n[bold cyan]{ep_label}[/bold cyan] — {len(responses)} response(s)")
+        console.print(
+            f"\n[bold cyan]{ep_label}[/bold cyan] — {len(responses)} response(s)"
+        )
 
         if len(responses) < 2:
             console.print("  [dim]Only one response, showing inferred schema.[/dim]")

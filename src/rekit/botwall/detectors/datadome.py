@@ -17,7 +17,10 @@ class DataDomeDetector(Detector):
 
     _BODY_PATTERNS = [
         (re.compile(r"datadome\.co", re.I), "Reference to datadome.co JS"),
-        (re.compile(r"captcha-delivery\.com", re.I), "captcha-delivery.com challenge domain"),
+        (
+            re.compile(r"captcha-delivery\.com", re.I),
+            "captcha-delivery.com challenge domain",
+        ),
         (re.compile(r"dd\.js", re.I), "DataDome dd.js script tag"),
         (re.compile(r"window\.ddjskey", re.I), "DataDome JS key variable"),
         (re.compile(r"x-]datadome", re.I), "DataDome meta reference"),

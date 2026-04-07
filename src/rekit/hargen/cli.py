@@ -44,22 +44,26 @@ def generate(
     ),
     output_dir: Path = typer.Option(
         "./generated_client",
-        "--output", "-o",
+        "--output",
+        "-o",
         help="Output directory for generated client code.",
     ),
     base_url: Optional[str] = typer.Option(
         None,
-        "--base-url", "-b",
+        "--base-url",
+        "-b",
         help="Filter traffic to this base URL only (e.g., https://api.example.com).",
     ),
     name: str = typer.Option(
         "ApiClient",
-        "--name", "-n",
+        "--name",
+        "-n",
         help="Name for the generated client class.",
     ),
     package_name: str = typer.Option(
         "api_client",
-        "--package", "-p",
+        "--package",
+        "-p",
         help="Python package name for generated imports.",
     ),
 ) -> None:
@@ -145,12 +149,14 @@ def inspect(
     ),
     base_url: Optional[str] = typer.Option(
         None,
-        "--base-url", "-b",
+        "--base-url",
+        "-b",
         help="Filter traffic to this base URL only.",
     ),
     verbose: bool = typer.Option(
         False,
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         help="Show detailed information including headers and schemas.",
     ),
 ) -> None:
@@ -276,9 +282,7 @@ def inspect(
 
         console.print()
         for ep in spec.endpoints:
-            console.print(
-                f"[bold]{ep.method} {ep.path_pattern}[/bold]"
-            )
+            console.print(f"[bold]{ep.method} {ep.path_pattern}[/bold]")
             if ep.path_params:
                 console.print(
                     f"  Path params: {', '.join(p.name + ':' + p.type_str for p in ep.path_params)}"

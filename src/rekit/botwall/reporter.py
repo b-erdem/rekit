@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 import requests
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
 
 from rekit.botwall.detectors import ALL_DETECTORS
 from rekit.botwall.detectors.base import Detection, Difficulty, ResponseData
@@ -144,28 +143,36 @@ def detect_all(
         return DetectionReport(
             url=url,
             detections=[],
-            raw_response=ResponseData(url=url, status_code=0, headers={}, body="", cookies={}),
+            raw_response=ResponseData(
+                url=url, status_code=0, headers={}, body="", cookies={}
+            ),
             error=f"SSL error: {exc}",
         )
     except requests.exceptions.ConnectionError as exc:
         return DetectionReport(
             url=url,
             detections=[],
-            raw_response=ResponseData(url=url, status_code=0, headers={}, body="", cookies={}),
+            raw_response=ResponseData(
+                url=url, status_code=0, headers={}, body="", cookies={}
+            ),
             error=f"Connection error: {exc}",
         )
     except requests.exceptions.Timeout:
         return DetectionReport(
             url=url,
             detections=[],
-            raw_response=ResponseData(url=url, status_code=0, headers={}, body="", cookies={}),
+            raw_response=ResponseData(
+                url=url, status_code=0, headers={}, body="", cookies={}
+            ),
             error=f"Request timed out after {timeout}s",
         )
     except requests.exceptions.RequestException as exc:
         return DetectionReport(
             url=url,
             detections=[],
-            raw_response=ResponseData(url=url, status_code=0, headers={}, body="", cookies={}),
+            raw_response=ResponseData(
+                url=url, status_code=0, headers={}, body="", cookies={}
+            ),
             error=f"Request failed: {exc}",
         )
 
@@ -251,21 +258,25 @@ def render_report(report: DetectionReport, verbose: bool = False) -> None:
     c = console
 
     if report.error:
-        c.print(Panel(
-            f"[red bold]Error:[/red bold] {report.error}",
-            title=f"[bold]botwall[/bold]  {report.url}",
-            border_style="red",
-        ))
+        c.print(
+            Panel(
+                f"[red bold]Error:[/red bold] {report.error}",
+                title=f"[bold]botwall[/bold]  {report.url}",
+                border_style="red",
+            )
+        )
         return
 
     # ── per-detection panels ────────────────────────────────────────────
     if not report.detections:
-        c.print(Panel(
-            "[green]No bot protection systems detected.[/green]\n"
-            "The target appears to serve responses without active bot mitigation.",
-            title=f"[bold]botwall[/bold]  {report.url}",
-            border_style="green",
-        ))
+        c.print(
+            Panel(
+                "[green]No bot protection systems detected.[/green]\n"
+                "The target appears to serve responses without active bot mitigation.",
+                title=f"[bold]botwall[/bold]  {report.url}",
+                border_style="green",
+            )
+        )
     else:
         for det in report.detections:
             _render_detection(det)
@@ -294,7 +305,9 @@ def render_report(report: DetectionReport, verbose: bool = False) -> None:
                 f"Status differs: requests={rd.status_code}, curl_cffi={cr.status_code}",
             )
 
-    c.print(Panel(resp_table, title="[bold]Response Summary[/bold]", border_style="dim"))
+    c.print(
+        Panel(resp_table, title="[bold]Response Summary[/bold]", border_style="dim")
+    )
 
     if verbose:
         _render_verbose(report)
@@ -311,7 +324,9 @@ def _render_detection(det: Detection) -> None:
 
     # Confidence + difficulty
     diff_label = _DIFFICULTY_EMOJI.get(det.difficulty, det.difficulty.value)
-    lines.append(f"Confidence: [bold]{det.confidence:.0%}[/bold]    Difficulty: {diff_label}")
+    lines.append(
+        f"Confidence: [bold]{det.confidence:.0%}[/bold]    Difficulty: {diff_label}"
+    )
     lines.append(f"[dim]{det.difficulty.description}[/dim]")
     lines.append("")
 
@@ -329,11 +344,13 @@ def _render_detection(det: Detection) -> None:
             lines.append(f"  - {hint}")
 
     border = det.difficulty.color
-    console.print(Panel(
-        "\n".join(lines),
-        title=" ".join(title_parts),
-        border_style=border,
-    ))
+    console.print(
+        Panel(
+            "\n".join(lines),
+            title=" ".join(title_parts),
+            border_style=border,
+        )
+    )
 
 
 def _render_verbose(report: DetectionReport) -> None:

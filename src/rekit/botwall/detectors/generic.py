@@ -18,13 +18,25 @@ class GenericDetector(Detector):
     # ── CAPTCHA patterns ────────────────────────────────────────────────
     _CAPTCHA_PATTERNS = [
         (re.compile(r"google\.com/recaptcha", re.I), "reCAPTCHA", "reCAPTCHA"),
-        (re.compile(r"www\.recaptcha\.net", re.I), "reCAPTCHA (recaptcha.net)", "reCAPTCHA"),
+        (
+            re.compile(r"www\.recaptcha\.net", re.I),
+            "reCAPTCHA (recaptcha.net)",
+            "reCAPTCHA",
+        ),
         (re.compile(r"g-recaptcha", re.I), "g-recaptcha element", "reCAPTCHA"),
         (re.compile(r"hcaptcha\.com", re.I), "hCaptcha script", "hCaptcha"),
         (re.compile(r"h-captcha", re.I), "h-captcha element", "hCaptcha"),
-        (re.compile(r"arkoselabs\.com", re.I), "Arkose Labs (FunCaptcha)", "Arkose/FunCaptcha"),
+        (
+            re.compile(r"arkoselabs\.com", re.I),
+            "Arkose Labs (FunCaptcha)",
+            "Arkose/FunCaptcha",
+        ),
         (re.compile(r"funcaptcha", re.I), "FunCaptcha reference", "Arkose/FunCaptcha"),
-        (re.compile(r"client-api\.arkoselabs", re.I), "Arkose client API", "Arkose/FunCaptcha"),
+        (
+            re.compile(r"client-api\.arkoselabs", re.I),
+            "Arkose client API",
+            "Arkose/FunCaptcha",
+        ),
     ]
 
     # ── generic WAF headers ─────────────────────────────────────────────
@@ -64,7 +76,9 @@ class GenericDetector(Detector):
         if status in (403, 429, 503):
             # Check if the body looks like a challenge rather than a normal error
             challenge_indicators = [
-                re.compile(r"<script[^>]*>.*?(challenge|captcha|verify|check)", re.I | re.S),
+                re.compile(
+                    r"<script[^>]*>.*?(challenge|captcha|verify|check)", re.I | re.S
+                ),
                 re.compile(r"access.denied.*bot", re.I),
                 re.compile(r"blocked.*automated", re.I),
                 re.compile(r"please.complete.*security.*check", re.I),
@@ -115,13 +129,21 @@ class GenericDetector(Detector):
         # ── bypass hints ────────────────────────────────────────────────
         hints: list[str] = []
         if "reCAPTCHA" in captcha_systems:
-            hints.append("reCAPTCHA v2/v3 requires token solving — use a CAPTCHA solving service.")
+            hints.append(
+                "reCAPTCHA v2/v3 requires token solving — use a CAPTCHA solving service."
+            )
         if "hCaptcha" in captcha_systems:
-            hints.append("hCaptcha requires visual challenge solving — consider a solving service.")
+            hints.append(
+                "hCaptcha requires visual challenge solving — consider a solving service."
+            )
         if "Arkose/FunCaptcha" in captcha_systems:
-            hints.append("Arkose FunCaptcha is particularly difficult — requires specialized solvers.")
+            hints.append(
+                "Arkose FunCaptcha is particularly difficult — requires specialized solvers."
+            )
         if has_rate_limit:
-            hints.append("Rate limiting detected — implement request throttling and IP rotation.")
+            hints.append(
+                "Rate limiting detected — implement request throttling and IP rotation."
+            )
         if has_waf:
             hints.append("Generic WAF detected — vary User-Agent and request patterns.")
 

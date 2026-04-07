@@ -8,7 +8,6 @@ Supports two output formats:
 
 from __future__ import annotations
 
-import json
 from typing import Any, Dict
 
 from rich.console import Console
@@ -48,12 +47,23 @@ def generate_table(result: ScanResult, console: Console | None = None) -> None:
         f"[bold]Interceptors:[/bold] {summary['total_interceptors']}  |  "
         f"[bold]Auth Patterns:[/bold] {summary['total_auth_patterns']}"
     )
-    console.print(Panel(summary_text, title="[bold]apkmap scan summary[/bold]", border_style="bright_blue"))
+    console.print(
+        Panel(
+            summary_text,
+            title="[bold]apkmap scan summary[/bold]",
+            border_style="bright_blue",
+        )
+    )
     console.print()
 
     # ---- endpoints ----
     if result.endpoints:
-        table = Table(title="Endpoints", title_style="bold green", border_style="green", show_lines=True)
+        table = Table(
+            title="Endpoints",
+            title_style="bold green",
+            border_style="green",
+            show_lines=True,
+        )
         table.add_column("Method", style="bold", width=8)
         table.add_column("Path", style="green", min_width=30)
         table.add_column("Params", min_width=15)
@@ -62,9 +72,13 @@ def generate_table(result: ScanResult, console: Console | None = None) -> None:
 
         for ep in result.endpoints:
             method_style = _method_color(ep.method)
-            params_str = ", ".join(
-                f"{p.get('kind', '')}({p.get('name', '')})" for p in ep.params
-            ) if ep.params else "-"
+            params_str = (
+                ", ".join(
+                    f"{p.get('kind', '')}({p.get('name', '')})" for p in ep.params
+                )
+                if ep.params
+                else "-"
+            )
             table.add_row(
                 Text(ep.method, style=method_style),
                 ep.path,
@@ -90,7 +104,12 @@ def generate_table(result: ScanResult, console: Console | None = None) -> None:
 
     # ---- models ----
     if result.models:
-        table = Table(title="Models", title_style="bold blue", border_style="blue", show_lines=True)
+        table = Table(
+            title="Models",
+            title_style="bold blue",
+            border_style="blue",
+            show_lines=True,
+        )
         table.add_column("Class", style="bold blue", min_width=20)
         table.add_column("Fields", min_width=40)
         table.add_column("Source", style="dim", min_width=20)
@@ -110,17 +129,26 @@ def generate_table(result: ScanResult, console: Console | None = None) -> None:
 
     # ---- interceptors ----
     if result.interceptors:
-        table = Table(title="Interceptors", title_style="bold yellow", border_style="yellow", show_lines=True)
+        table = Table(
+            title="Interceptors",
+            title_style="bold yellow",
+            border_style="yellow",
+            show_lines=True,
+        )
         table.add_column("Name", style="bold yellow", min_width=20)
         table.add_column("Type", min_width=10)
         table.add_column("Headers Added", min_width=25)
         table.add_column("Source", style="dim", min_width=20)
 
         for ic in result.interceptors:
-            headers_str = ", ".join(
-                f"{h.get('name', '')}: {h.get('value_expr', h.get('value', ''))}"
-                for h in ic.headers_added
-            ) if ic.headers_added else "-"
+            headers_str = (
+                ", ".join(
+                    f"{h.get('name', '')}: {h.get('value_expr', h.get('value', ''))}"
+                    for h in ic.headers_added
+                )
+                if ic.headers_added
+                else "-"
+            )
             type_style = "red" if ic.type == "auth" else "yellow"
             table.add_row(
                 ic.name,
@@ -134,7 +162,12 @@ def generate_table(result: ScanResult, console: Console | None = None) -> None:
 
     # ---- auth patterns ----
     if result.auth_patterns:
-        table = Table(title="Auth Patterns", title_style="bold red", border_style="red", show_lines=True)
+        table = Table(
+            title="Auth Patterns",
+            title_style="bold red",
+            border_style="red",
+            show_lines=True,
+        )
         table.add_column("Type", style="bold red", min_width=12)
         table.add_column("Header", min_width=18)
         table.add_column("Description", min_width=30)
@@ -151,7 +184,15 @@ def generate_table(result: ScanResult, console: Console | None = None) -> None:
         console.print(table)
         console.print()
 
-    if not any([result.endpoints, result.base_urls, result.models, result.interceptors, result.auth_patterns]):
+    if not any(
+        [
+            result.endpoints,
+            result.base_urls,
+            result.models,
+            result.interceptors,
+            result.auth_patterns,
+        ]
+    ):
         console.print("[dim]No API patterns found.[/dim]")
 
 

@@ -11,7 +11,6 @@ from __future__ import annotations
 import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from itertools import combinations
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 
@@ -49,6 +48,7 @@ def _detect_string_subtype(value: str) -> str:
 # ---------------------------------------------------------------------------
 # SchemaNode — represents inferred schema for a single JSON value
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class SchemaNode:
@@ -108,6 +108,7 @@ class SchemaNode:
 # Schema inference
 # ---------------------------------------------------------------------------
 
+
 def infer_schema(data: Any, max_depth: int = 3, _depth: int = 0) -> SchemaNode:
     """Infer a :class:`SchemaNode` from an arbitrary JSON value.
 
@@ -136,14 +137,20 @@ def infer_schema(data: Any, max_depth: int = 3, _depth: int = 0) -> SchemaNode:
         return SchemaNode(type=subtype, example=example, types_seen={subtype})
 
     if isinstance(data, list):
-        node = SchemaNode(type="array", types_seen={"array"}, example=f"[…{len(data)} items]")
+        node = SchemaNode(
+            type="array", types_seen={"array"}, example=f"[…{len(data)} items]"
+        )
         if data and _depth < max_depth:
             # Merge schemas of all array elements to capture optional keys
-            element_schemas = [infer_schema(item, max_depth, _depth + 1) for item in data[:20]]
+            element_schemas = [
+                infer_schema(item, max_depth, _depth + 1) for item in data[:20]
+            ]
             node.items = _merge_element_schemas(element_schemas)
         elif data:
             # At depth limit, just record the type of the first element
-            node.items = SchemaNode(type=_basic_type(data[0]), types_seen={_basic_type(data[0])})
+            node.items = SchemaNode(
+                type=_basic_type(data[0]), types_seen={_basic_type(data[0])}
+            )
         return node
 
     if isinstance(data, dict):
@@ -273,6 +280,7 @@ def _merge_object_schemas(schemas: List[SchemaNode], total_elements: int) -> Sch
 # Multi-source merging
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class MergedField:
     """A single field as seen across multiple labeled sources.
@@ -330,8 +338,8 @@ def merge_schemas(schemas: List[Tuple[str, SchemaNode]]) -> MergedSchema:
 
     for key, source_nodes in all_keys.items():
         mf = MergedField(name=key)
-        mf.sources_present = [l for l in labels if l in source_nodes]
-        mf.sources_missing = [l for l in labels if l not in source_nodes]
+        mf.sources_present = [label for label in labels if label in source_nodes]
+        mf.sources_missing = [label for label in labels if label not in source_nodes]
         mf.is_universal = len(mf.sources_missing) == 0
 
         for label, node in source_nodes.items():
@@ -354,6 +362,7 @@ def merge_schemas(schemas: List[Tuple[str, SchemaNode]]) -> MergedSchema:
 # ---------------------------------------------------------------------------
 # Schema comparison
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class FieldMapping:
@@ -405,7 +414,9 @@ class ComparisonResult:
         return {
             "labels": self.labels,
             "stats": self.stats,
-            "universal_fields": {k: _mf_to_dict(v) for k, v in self.universal_fields.items()},
+            "universal_fields": {
+                k: _mf_to_dict(v) for k, v in self.universal_fields.items()
+            },
             "common_fields": {k: _mf_to_dict(v) for k, v in self.common_fields.items()},
             "unique_fields": {
                 src: {k: _mf_to_dict(v) for k, v in flds.items()}
@@ -484,11 +495,13 @@ def compare_schemas(schemas: List[Tuple[str, SchemaNode]]) -> ComparisonResult:
                 if schema.is_object and name in schema.fields:
                     node = schema.fields[name]
                     types_by_source[label] = node.type
-            result.type_conflicts.append(TypeConflict(
-                field_name=name,
-                types_by_source=types_by_source,
-                suggested_type=mf.suggested_type,
-            ))
+            result.type_conflicts.append(
+                TypeConflict(
+                    field_name=name,
+                    types_by_source=types_by_source,
+                    suggested_type=mf.suggested_type,
+                )
+            )
 
     # Build suggested mappings including similarity-based field grouping
     result.suggested_mapping = _build_field_mappings(schemas, merged)
@@ -631,12 +644,14 @@ def _build_field_mappings(
     # Identity mappings for shared fields
     for name, mf in merged.fields.items():
         for src in mf.sources_present:
-            mappings.append(FieldMapping(
-                source_label=src,
-                source_field=name,
-                unified_field=name,
-                confidence=1.0,
-            ))
+            mappings.append(
+                FieldMapping(
+                    source_label=src,
+                    source_field=name,
+                    unified_field=name,
+                    confidence=1.0,
+                )
+            )
 
     # Try to match unique fields across sources via similarity
     # Build per-source unique fields (fields only that source has under that exact name)
@@ -647,13 +662,17 @@ def _build_field_mappings(
         for other_label, other_fields in source_fields.items():
             if other_label != label:
                 others.update(other_fields)
-        source_only[label] = own - others  # fields not in any other source by exact name
+        source_only[label] = (
+            own - others
+        )  # fields not in any other source by exact name
 
     # Cross-source similarity matching for source-unique fields
-    matched_pairs: List[Tuple[str, str, str, str, float]] = []  # (src1, f1, src2, f2, score)
+    matched_pairs: List[
+        Tuple[str, str, str, str, float]
+    ] = []  # (src1, f1, src2, f2, score)
     labels = merged.labels
     for i, label_a in enumerate(labels):
-        for label_b in labels[i + 1:]:
+        for label_b in labels[i + 1 :]:
             for field_a in source_only.get(label_a, set()):
                 for field_b in source_only.get(label_b, set()):
                     sim = _field_similarity(field_a, field_b)
@@ -674,12 +693,16 @@ def _build_field_mappings(
         # Choose the shorter/simpler name as the unified name
         unified = f1 if len(f1) <= len(f2) else f2
         # Only add if not already an identity mapping
-        existing_unified = {m.unified_field for m in mappings
-                           if m.source_label == src1 and m.source_field == f1}
+        existing_unified = {
+            m.unified_field
+            for m in mappings
+            if m.source_label == src1 and m.source_field == f1
+        }
         if unified not in existing_unified:
             # Remove old identity mapping if exists, replace with new
             mappings = [
-                m for m in mappings
+                m
+                for m in mappings
                 if not (m.source_label == src1 and m.source_field == f1)
                 and not (m.source_label == src2 and m.source_field == f2)
             ]

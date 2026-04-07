@@ -50,7 +50,9 @@ class AkamaiDetector(Detector):
             evidence.append("akamai-x-cache-on header")
 
         if "x-akamai-transformed" in headers:
-            evidence.append(f"x-akamai-transformed header ({headers['x-akamai-transformed']})")
+            evidence.append(
+                f"x-akamai-transformed header ({headers['x-akamai-transformed']})"
+            )
 
         # Akamai edge headers
         for hdr_name in ("x-akamai-request-id", "x-akamai-session-info"):

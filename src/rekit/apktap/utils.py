@@ -7,7 +7,7 @@ Device detection, library detection, hook selection, and formatting helpers.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, List, TYPE_CHECKING
 
 from rich.console import Console
 
@@ -256,7 +256,9 @@ def format_exchange(exchange: "Exchange") -> str:
         if resp.timing and resp.timing.get("durationMs"):
             timing_str = f" [{resp.timing['durationMs']}ms]"
 
-        parts.append(f"          [{style}]{code} {resp.status_text}[/{style}]{size_str}{timing_str}")
+        parts.append(
+            f"          [{style}]{code} {resp.status_text}[/{style}]{size_str}{timing_str}"
+        )
 
         if resp.error:
             parts.append(f"          [red]Error: {resp.error}[/]")

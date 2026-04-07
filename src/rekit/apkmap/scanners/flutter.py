@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Dict, List
 
 from rekit.apkmap.scanners.base import (
     AuthPattern,
@@ -35,15 +34,15 @@ from rekit.apkmap.scanners.base import (
 
 # Dart http calls: http.get(...), http.post(...), etc.
 _DART_HTTP_RE = re.compile(
-    r'(?:http|client|_client)\s*\.\s*(get|post|put|delete|patch|head)\s*\(\s*'
-    r'(?:Uri\.parse\s*\(\s*)?'
+    r"(?:http|client|_client)\s*\.\s*(get|post|put|delete|patch|head)\s*\(\s*"
+    r"(?:Uri\.parse\s*\(\s*)?"
     r"['\"]?(https?://[^'\")\s]+)['\"]?",
     re.IGNORECASE,
 )
 
 # Dio().get("/path"), dio.post("/path"), etc.
 _DIO_CALL_RE = re.compile(
-    r'(?:dio|_dio|Dio\(\))\s*\.\s*(get|post|put|delete|patch|head)\s*\(\s*'
+    r"(?:dio|_dio|Dio\(\))\s*\.\s*(get|post|put|delete|patch|head)\s*\(\s*"
     r"['\"]([^'\"]+)['\"]",
     re.IGNORECASE,
 )
@@ -67,18 +66,18 @@ _HTTP_CLIENT_RE = re.compile(
 
 # InterceptorsWrapper / interceptor configuration
 _INTERCEPTOR_WRAPPER_RE = re.compile(
-    r'InterceptorsWrapper\s*\(',
+    r"InterceptorsWrapper\s*\(",
     re.MULTILINE,
 )
 
 # onRequest / onResponse / onError handlers
 _INTERCEPTOR_HANDLER_RE = re.compile(
-    r'(onRequest|onResponse|onError)\s*:\s*\(',
+    r"(onRequest|onResponse|onError)\s*:\s*\(",
 )
 
 # Dio interceptor add: dio.interceptors.add(...)
 _DIO_INTERCEPTOR_ADD_RE = re.compile(
-    r'(?:dio|_dio)\.interceptors\.add\s*\(\s*(?:new\s+)?(\w+)',
+    r"(?:dio|_dio)\.interceptors\.add\s*\(\s*(?:new\s+)?(\w+)",
 )
 
 # Header map patterns in Dart: {"Authorization": "Bearer ...", ...}
@@ -88,17 +87,17 @@ _DART_HEADER_MAP_RE = re.compile(
 
 # headers: {"Key": "Value"} in Dio Options
 _DIO_HEADERS_RE = re.compile(
-    r'headers\s*:\s*\{([^}]+)\}',
+    r"headers\s*:\s*\{([^}]+)\}",
 )
 
 # String constants that look like API URLs (in extracted strings or Dart source)
 _URL_CONSTANT_RE = re.compile(
-    r'(?:https?://[a-zA-Z0-9][-a-zA-Z0-9.]*(?::\d+)?(?:/[a-zA-Z0-9._~:/?#\[\]@!$&\'()*+,;=%-]*))',
+    r"(?:https?://[a-zA-Z0-9][-a-zA-Z0-9.]*(?::\d+)?(?:/[a-zA-Z0-9._~:/?#\[\]@!$&\'()*+,;=%-]*))",
 )
 
 # API path segments in URLs
 _API_PATH_RE = re.compile(
-    r'(?:https?://[^/]+)?(/(?:api|v[0-9]+|graphql|rest|mobile|app)/[a-zA-Z0-9._/-]*)',
+    r"(?:https?://[^/]+)?(/(?:api|v[0-9]+|graphql|rest|mobile|app)/[a-zA-Z0-9._/-]*)",
 )
 
 
@@ -189,8 +188,7 @@ class FlutterScanner(Scanner):
         # Interceptors
         for m in _INTERCEPTOR_WRAPPER_RE.finditer(text):
             line_no = text[: m.start()].count("\n") + 1
-            chunk = text[m.start(): m.start() + 1500]
-            handlers = [hm.group(1) for hm in _INTERCEPTOR_HANDLER_RE.finditer(chunk)]
+            chunk = text[m.start() : m.start() + 1500]
             snippet = "\n".join(chunk.split("\n")[:10])
             result.interceptors.append(
                 InterceptorInfo(
@@ -223,8 +221,8 @@ class FlutterScanner(Scanner):
                         AuthPattern(
                             type="bearer",
                             header_name="Authorization",
-                            source_description=f"Bearer token in Dart source",
-                            code_snippet=text[m.start():m.end()],
+                            source_description="Bearer token in Dart source",
+                            code_snippet=text[m.start() : m.end()],
                             source_file=f"{rel}:{line_no}",
                         )
                     )
@@ -233,8 +231,8 @@ class FlutterScanner(Scanner):
                         AuthPattern(
                             type="basic",
                             header_name="Authorization",
-                            source_description=f"Basic auth in Dart source",
-                            code_snippet=text[m.start():m.end()],
+                            source_description="Basic auth in Dart source",
+                            code_snippet=text[m.start() : m.end()],
                             source_file=f"{rel}:{line_no}",
                         )
                     )
@@ -243,8 +241,8 @@ class FlutterScanner(Scanner):
                     AuthPattern(
                         type="api_key",
                         header_name=header_name,
-                        source_description=f"API key header in Dart source",
-                        code_snippet=text[m.start():m.end()],
+                        source_description="API key header in Dart source",
+                        code_snippet=text[m.start() : m.end()],
                         source_file=f"{rel}:{line_no}",
                     )
                 )
@@ -289,22 +287,42 @@ def _is_api_url(url: str) -> bool:
     lowered = url.lower()
     # Skip common non-API URLs
     skip_domains = (
-        "schemas.android.com", "www.w3.org", "ns.adobe.com",
-        "play.google.com", "developer.android.com", "fonts.googleapis.com",
-        "schemas.microsoft.com", "xml.org", "xmlns.com",
-        "github.com", "stackoverflow.com",
+        "schemas.android.com",
+        "www.w3.org",
+        "ns.adobe.com",
+        "play.google.com",
+        "developer.android.com",
+        "fonts.googleapis.com",
+        "schemas.microsoft.com",
+        "xml.org",
+        "xmlns.com",
+        "github.com",
+        "stackoverflow.com",
     )
     for d in skip_domains:
         if d in lowered:
             return False
     # Skip file extensions that indicate static resources
-    skip_extensions = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".css", ".js", ".woff", ".ttf", ".eot")
+    skip_extensions = (
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".css",
+        ".js",
+        ".woff",
+        ".ttf",
+        ".eot",
+    )
     for ext in skip_extensions:
         if lowered.endswith(ext):
             return False
     # Positive signals
     if _API_PATH_RE.search(url):
         return True
-    if any(seg in lowered for seg in ("/api", "/v1", "/v2", "/v3", "/graphql", "/rest")):
+    if any(
+        seg in lowered for seg in ("/api", "/v1", "/v2", "/v3", "/graphql", "/rest")
+    ):
         return True
     return True  # Default: include it, generic scanner will deduplicate

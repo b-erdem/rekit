@@ -19,6 +19,7 @@ from rekit.ja3probe.fingerprints import FingerprintProfile, PROFILES
 # Result dataclasses
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ProbeResult:
     """Outcome of probing a single fingerprint profile against a target."""
@@ -138,10 +139,12 @@ def _detect_challenge(
 # Probing
 # ---------------------------------------------------------------------------
 
+
 def _ensure_curl_cffi():
     """Import curl_cffi or raise a helpful error."""
     try:
         from curl_cffi.requests import Session
+
         return Session
     except ImportError:
         raise ImportError(
@@ -190,7 +193,9 @@ def probe_fingerprint(
             pass
 
         challenge, protection = _detect_challenge(
-            resp.status_code, headers_dict, body_text,
+            resp.status_code,
+            headers_dict,
+            body_text,
         )
 
         # Determine redirect
@@ -235,10 +240,7 @@ def probe_all(
 
     results: List[ProbeResult] = []
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {
-            pool.submit(probe_fingerprint, url, p, timeout): p
-            for p in profiles
-        }
+        futures = {pool.submit(probe_fingerprint, url, p, timeout): p for p in profiles}
         for future in as_completed(futures):
             results.append(future.result())
 
@@ -250,6 +252,7 @@ def probe_all(
 # ---------------------------------------------------------------------------
 # Analysis
 # ---------------------------------------------------------------------------
+
 
 def analyze_results(url: str, results: List[ProbeResult]) -> AnalysisReport:
     """Build an analysis report from probe results."""

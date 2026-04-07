@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 # Data models
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class FieldInfo:
     """A single field inside a request/response model."""
@@ -142,6 +143,7 @@ class ScanResult:
 # ---------------------------------------------------------------------------
 # Abstract base scanner
 # ---------------------------------------------------------------------------
+
 
 class Scanner(ABC):
     """Base class that every apkmap scanner must implement."""

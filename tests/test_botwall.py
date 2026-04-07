@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
 
-from rekit.botwall.detectors.base import Detection, Difficulty, ResponseData
+from rekit.botwall.detectors.base import Difficulty, ResponseData
 from rekit.botwall.detectors.cloudflare import CloudflareDetector
 from rekit.botwall.detectors.datadome import DataDomeDetector
 from rekit.botwall.detectors.akamai import AkamaiDetector
@@ -179,7 +178,9 @@ class TestDataDomeDetector:
 
     def test_detect_redirect_chain(self):
         resp = _resp(
-            200, {}, "",
+            200,
+            {},
+            "",
             cookies={"datadome": "x"},
             redirect_chain=["https://example.com?dd=abcdef"],
         )
@@ -247,7 +248,7 @@ class TestAkamaiDetector:
         assert det.difficulty == Difficulty.HARD
 
     def test_detect_bmak_body(self):
-        body = '<script>bmak.init()</script>'
+        body = "<script>bmak.init()</script>"
         resp = _resp(200, {}, body)
         det = self.detector.detect(resp)
         assert det is not None

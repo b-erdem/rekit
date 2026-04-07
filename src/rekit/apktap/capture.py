@@ -7,7 +7,6 @@ pairs, and exports captured traffic as HAR 1.2 files.
 
 from __future__ import annotations
 
-import base64
 import json
 import signal
 import sys
@@ -120,7 +119,9 @@ class ExchangeBuffer:
     def all_exchanges(self) -> List[Exchange]:
         """Return all exchanges in order of first appearance."""
         with self._lock:
-            return [self._exchanges[eid] for eid in self._order if eid in self._exchanges]
+            return [
+                self._exchanges[eid] for eid in self._order if eid in self._exchanges
+            ]
 
     def latest(self, n: int = 1) -> List[Exchange]:
         with self._lock:
@@ -261,7 +262,9 @@ def save_har(exchanges: List[Exchange], output_path: Path) -> None:
                 "headers": _make_har_headers(resp.headers),
                 "content": {
                     "size": response_body.get("size", 0),
-                    "mimeType": resp.headers.get("Content-Type", response_body.get("mimeType", "")),
+                    "mimeType": resp.headers.get(
+                        "Content-Type", response_body.get("mimeType", "")
+                    ),
                     "text": response_body.get("text", ""),
                 },
                 "redirectURL": resp.headers.get("Location", ""),
@@ -335,7 +338,9 @@ def save_har(exchanges: List[Exchange], output_path: Path) -> None:
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(har, indent=2, ensure_ascii=False), encoding="utf-8")
+    output_path.write_text(
+        json.dumps(har, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -499,7 +504,7 @@ class CaptureSession:
         # Resume the app if we spawned it
         if self.spawn and self._pid:
             self._device.resume(self._pid)
-            console.print(f"[green]App resumed[/]")
+            console.print("[green]App resumed[/]")
 
     def on_message(self, message: Dict[str, Any], data: Any) -> None:
         """Handle messages from Frida hook scripts.
@@ -564,9 +569,7 @@ class CaptureSession:
         self.buffer.add_request(payload["id"], req, source=source)
 
         if self.verbose:
-            console.print(
-                f"  [cyan]{req.method}[/] {_truncate(req.url, 100)}"
-            )
+            console.print(f"  [cyan]{req.method}[/] {_truncate(req.url, 100)}")
 
     def _handle_response(self, payload: Dict[str, Any]) -> None:
         """Process a captured response message."""
@@ -590,7 +593,13 @@ class CaptureSession:
 
         if self.verbose:
             code = resp.status_code
-            style = "green" if 200 <= code < 300 else "yellow" if 300 <= code < 400 else "red"
+            style = (
+                "green"
+                if 200 <= code < 300
+                else "yellow"
+                if 300 <= code < 400
+                else "red"
+            )
             console.print(f"  [{style}]{code}[/{style}] ← {payload.get('id', '?')}")
 
     def start(self, timeout: int = 0, output_path: Optional[Path] = None) -> None:
@@ -606,9 +615,7 @@ class CaptureSession:
 
         self._running = True
 
-        console.print(
-            f"\n[bold green]Capturing traffic from {self.package_name}[/]"
-        )
+        console.print(f"\n[bold green]Capturing traffic from {self.package_name}[/]")
         if self.filter_host:
             console.print(f"[dim]Filtering: only requests to {self.filter_host}[/]")
         console.print("[dim]Press Ctrl+C to stop and save.[/]\n")
@@ -676,8 +683,10 @@ class CaptureSession:
                             if ex.response:
                                 code = ex.response.status_code
                                 style = (
-                                    "green" if 200 <= code < 300
-                                    else "yellow" if 300 <= code < 400
+                                    "green"
+                                    if 200 <= code < 300
+                                    else "yellow"
+                                    if 300 <= code < 400
                                     else "red"
                                 )
                                 status = f" [{style}]{code}[/{style}]"

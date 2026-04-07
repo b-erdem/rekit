@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from jinja2 import Environment, BaseLoader
 from rich.console import Console
 
-from rekit.hargen.analyzer import ApiSpec, Endpoint, FieldSchema, HeaderInfo
+from rekit.hargen.analyzer import ApiSpec, FieldSchema
 
 logger = logging.getLogger(__name__)
 console = Console(stderr=True)
@@ -246,9 +246,11 @@ CLIENT_TEMPLATE = textwrap.dedent('''\
 # Template context builders
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _ModelField:
     """Template context for a single model field."""
+
     attr_name: str
     key_repr: str  # repr of the original dict key
     type_annotation: str
@@ -263,6 +265,7 @@ class _ModelField:
 @dataclass
 class _ModelDef:
     """Template context for a model class."""
+
     class_name: str
     docstring: str
     fields: List[_ModelField]
@@ -271,6 +274,7 @@ class _ModelDef:
 @dataclass
 class _EndpointDef:
     """Template context for a client method."""
+
     func_name: str
     method: str
     path_pattern: str
@@ -292,6 +296,7 @@ class _EndpointDef:
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def generate_client(
     spec: ApiSpec,
@@ -374,9 +379,7 @@ def generate_client(
     console.print(f"  [dim]{init_path}[/dim]")
     console.print(f"  [dim]{models_path}[/dim]")
     console.print(f"  [dim]{client_path}[/dim]")
-    console.print(
-        f"  [dim]{len(models)} models, {len(endpoints)} endpoints[/dim]"
-    )
+    console.print(f"  [dim]{len(models)} models, {len(endpoints)} endpoints[/dim]")
 
     return output
 
@@ -384,6 +387,7 @@ def generate_client(
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _sanitize_name(name: str) -> str:
     """Sanitize a string to be a valid Python identifier."""
@@ -458,21 +462,25 @@ def _collect_models(
             if fs.nested and fs.type_str.startswith("List["):
                 # List of nested objects
                 inner_name = _unique_name(_to_class_name(fs.name) + "Item")
-                inner_model = _schema_to_model(fs.nested, inner_name, f"Item in {fs.name}")
+                inner_model = _schema_to_model(
+                    fs.nested, inner_name, f"Item in {fs.name}"
+                )
                 if inner_model:
                     models.append(inner_model)
                     nested_model = inner_name
                     is_list = True
                     type_annotation = f"List[{inner_name}]"
-                    nested_from_dict = (
-                        f"[{inner_name}.from_dict(item) for item in data.get({key_repr}, [])]"
-                    )
+                    nested_from_dict = f"[{inner_name}.from_dict(item) for item in data.get({key_repr}, [])]"
                 else:
                     type_annotation = _clean_type(fs.type_str, fs.optional)
-            elif fs.nested and ("Dict[" in fs.type_str or "Optional[Dict[" in fs.type_str):
+            elif fs.nested and (
+                "Dict[" in fs.type_str or "Optional[Dict[" in fs.type_str
+            ):
                 # Nested object
                 inner_name = _unique_name(_to_class_name(fs.name))
-                inner_model = _schema_to_model(fs.nested, inner_name, f"Schema for {fs.name}")
+                inner_model = _schema_to_model(
+                    fs.nested, inner_name, f"Schema for {fs.name}"
+                )
                 if inner_model:
                     models.append(inner_model)
                     nested_model = inner_name
@@ -533,8 +541,9 @@ def _collect_models(
         if ep.response_schema:
             resp_name = _unique_name(ep.response_model_name)
             resp_model = _schema_to_model(
-                ep.response_schema, resp_name,
-                f"Response model for {ep.method} {ep.path_pattern}"
+                ep.response_schema,
+                resp_name,
+                f"Response model for {ep.method} {ep.path_pattern}",
             )
             if resp_model:
                 models.append(resp_model)
@@ -543,8 +552,9 @@ def _collect_models(
         if ep.request_schema:
             req_name = _unique_name(ep.request_model_name)
             req_model = _schema_to_model(
-                ep.request_schema, req_name,
-                f"Request model for {ep.method} {ep.path_pattern}"
+                ep.request_schema,
+                req_name,
+                f"Request model for {ep.method} {ep.path_pattern}",
             )
             if req_model:
                 models.append(req_model)
@@ -560,9 +570,7 @@ def _clean_type(type_str: str, optional: bool = False) -> str:
     return type_str
 
 
-def _build_endpoint_defs(
-    spec: ApiSpec, model_names: Set[str]
-) -> List[_EndpointDef]:
+def _build_endpoint_defs(spec: ApiSpec, model_names: Set[str]) -> List[_EndpointDef]:
     """Build template context for each endpoint method."""
     endpoints: List[_EndpointDef] = []
     func_names_used: Set[str] = set()
@@ -587,9 +595,7 @@ def _build_endpoint_defs(
         path_format = ep.path_pattern
         for p in ep.path_params:
             safe_name = _sanitize_name(p.name)
-            path_format = path_format.replace(
-                f"{{{p.name}}}", f"{{{safe_name}}}"
-            )
+            path_format = path_format.replace(f"{{{p.name}}}", f"{{{safe_name}}}")
 
         # Request model
         request_model = ""

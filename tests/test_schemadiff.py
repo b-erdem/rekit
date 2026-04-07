@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
 
 from rekit.schemadiff.analyzer import (
     SchemaNode,
-    MergedField,
-    MergedSchema,
     ComparisonResult,
-    TypeConflict,
-    FieldMapping,
     infer_schema,
     merge_schemas,
     compare_schemas,
@@ -18,7 +13,6 @@ from rekit.schemadiff.analyzer import (
     _basic_type,
     _safe_example,
     _merge_element_schemas,
-    _merge_object_schemas,
     _tokenize_field_name,
     _field_similarity,
     _suggest_python_type,
@@ -698,7 +692,9 @@ class TestGeneratePython:
             type="object",
             fields={
                 "id": SchemaNode(type="integer", types_seen={"integer"}, example=1),
-                "name": SchemaNode(type="string", types_seen={"string"}, example="Alice"),
+                "name": SchemaNode(
+                    type="string", types_seen={"string"}, example="Alice"
+                ),
                 "only_a": SchemaNode(type="string", types_seen={"string"}),
             },
         )

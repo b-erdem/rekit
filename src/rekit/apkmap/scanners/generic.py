@@ -14,12 +14,11 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import List, Set
 
 from rekit.apkmap.scanners.base import (
     AuthPattern,
     EndpointInfo,
-    InterceptorInfo,
     ModelInfo,
     FieldInfo,
     Scanner,
@@ -32,7 +31,7 @@ from rekit.apkmap.scanners.base import (
 
 # Generic URL pattern
 _URL_RE = re.compile(
-    r'https?://[a-zA-Z0-9][-a-zA-Z0-9.]*(?::\d{1,5})?(?:/[a-zA-Z0-9._~:/?#\[\]@!$&\'()*+,;=%-]*)?',
+    r"https?://[a-zA-Z0-9][-a-zA-Z0-9.]*(?::\d{1,5})?(?:/[a-zA-Z0-9._~:/?#\[\]@!$&\'()*+,;=%-]*)?",
 )
 
 # API path segments
@@ -58,13 +57,13 @@ _SHARED_PREFS_RE = re.compile(
 
 # Certificate pinning patterns
 _CERT_PIN_PATTERNS = [
-    re.compile(r'CertificatePinner', re.IGNORECASE),
-    re.compile(r'X509TrustManager'),
-    re.compile(r'TrustManagerFactory'),
-    re.compile(r'\.sslSocketFactory\s*\('),
-    re.compile(r'network_security_config', re.IGNORECASE),
-    re.compile(r'pin-set', re.IGNORECASE),
-    re.compile(r'sha256/[A-Za-z0-9+/=]{20,}'),
+    re.compile(r"CertificatePinner", re.IGNORECASE),
+    re.compile(r"X509TrustManager"),
+    re.compile(r"TrustManagerFactory"),
+    re.compile(r"\.sslSocketFactory\s*\("),
+    re.compile(r"network_security_config", re.IGNORECASE),
+    re.compile(r"pin-set", re.IGNORECASE),
+    re.compile(r"sha256/[A-Za-z0-9+/=]{20,}"),
 ]
 
 # JSON model-like patterns: classes with @SerializedName, @Json, @JsonProperty
@@ -74,46 +73,72 @@ _SERIALIZED_NAME_RE = re.compile(
 
 # Data class pattern (Kotlin): data class Foo(val bar: String, ...)
 _DATA_CLASS_RE = re.compile(
-    r'data\s+class\s+(\w+)\s*\(([^)]+)\)',
+    r"data\s+class\s+(\w+)\s*\(([^)]+)\)",
     re.MULTILINE,
 )
 
 # Kotlin field in data class: val fieldName: Type
 _KOTLIN_FIELD_RE = re.compile(
-    r'(?:val|var)\s+(\w+)\s*:\s*([\w<>,?\s]+)',
+    r"(?:val|var)\s+(\w+)\s*:\s*([\w<>,?\s]+)",
 )
 
 # Java POJO field with @SerializedName
 _JAVA_FIELD_RE = re.compile(
     r'@SerializedName\s*\(\s*["\']([^"\']+)["\']\s*\)\s*'
-    r'(?:private|public|protected)?\s*'
-    r'([\w<>,?\s]+)\s+(\w+)\s*;',
+    r"(?:private|public|protected)?\s*"
+    r"([\w<>,?\s]+)\s+(\w+)\s*;",
     re.MULTILINE,
 )
 
 # GraphQL query/mutation patterns
 _GRAPHQL_RE = re.compile(
-    r'(?:query|mutation|subscription)\s+(\w+)\s*(?:\([^)]*\))?\s*\{',
+    r"(?:query|mutation|subscription)\s+(\w+)\s*(?:\([^)]*\))?\s*\{",
 )
 
 # Domains we skip (SDKs, Android system, etc.)
 _SKIP_DOMAINS: Set[str] = {
-    "schemas.android.com", "www.w3.org", "ns.adobe.com",
-    "play.google.com", "developer.android.com",
-    "schemas.microsoft.com", "xml.org", "xmlns.com",
-    "fonts.googleapis.com", "fonts.gstatic.com",
-    "crashlytics.com", "firebase.google.com",
-    "google.com/maps", "maps.googleapis.com",
-    "facebook.com", "graph.facebook.com",
-    "github.com", "raw.githubusercontent.com",
+    "schemas.android.com",
+    "www.w3.org",
+    "ns.adobe.com",
+    "play.google.com",
+    "developer.android.com",
+    "schemas.microsoft.com",
+    "xml.org",
+    "xmlns.com",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
+    "crashlytics.com",
+    "firebase.google.com",
+    "google.com/maps",
+    "maps.googleapis.com",
+    "facebook.com",
+    "graph.facebook.com",
+    "github.com",
+    "raw.githubusercontent.com",
     "stackoverflow.com",
 }
 
-_SKIP_EXTENSIONS = frozenset((
-    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
-    ".css", ".js", ".woff", ".woff2", ".ttf", ".eot", ".otf",
-    ".mp3", ".mp4", ".wav", ".avi",
-))
+_SKIP_EXTENSIONS = frozenset(
+    (
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".webp",
+        ".css",
+        ".js",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".eot",
+        ".otf",
+        ".mp3",
+        ".mp4",
+        ".wav",
+        ".avi",
+    )
+)
 
 # Maximum file size we will read (5 MB)
 _MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -126,7 +151,19 @@ class GenericScanner(Scanner):
 
     def scan(self, source_dir: Path) -> ScanResult:
         result = ScanResult()
-        extensions = {".java", ".kt", ".smali", ".xml", ".json", ".dart", ".properties", ".yaml", ".yml", ".cfg", ".txt"}
+        extensions = {
+            ".java",
+            ".kt",
+            ".smali",
+            ".xml",
+            ".json",
+            ".dart",
+            ".properties",
+            ".yaml",
+            ".yml",
+            ".cfg",
+            ".txt",
+        }
 
         for fpath in source_dir.rglob("*"):
             if not fpath.is_file():
@@ -226,7 +263,9 @@ class GenericScanner(Scanner):
 
     # ---- SharedPreferences tokens ----
 
-    def _find_shared_prefs_tokens(self, text: str, rel_path: str, result: ScanResult) -> None:
+    def _find_shared_prefs_tokens(
+        self, text: str, rel_path: str, result: ScanResult
+    ) -> None:
         for m in _SHARED_PREFS_RE.finditer(text):
             key_name = m.group(1)
             line_no = text[: m.start()].count("\n") + 1
@@ -273,7 +312,7 @@ class GenericScanner(Scanner):
                 # Look for @SerializedName on the same field
                 json_name = None
                 field_ctx_start = max(0, fm.start() - 80)
-                field_ctx = body[field_ctx_start:fm.start()]
+                field_ctx = body[field_ctx_start : fm.start()]
                 sn = _SERIALIZED_NAME_RE.search(field_ctx)
                 if sn:
                     json_name = sn.group(1)
@@ -286,11 +325,13 @@ class GenericScanner(Scanner):
 
         # Java POJOs with @SerializedName
         # Group fields by enclosing class
-        class_re = re.compile(r'class\s+(\w+)\s*(?:extends\s+\w+\s*)?(?:implements\s+[\w,\s]*?)?\s*\{')
+        class_re = re.compile(
+            r"class\s+(\w+)\s*(?:extends\s+\w+\s*)?(?:implements\s+[\w,\s]*?)?\s*\{"
+        )
         for cm in class_re.finditer(text):
             class_name = cm.group(1)
             # Find closing brace (simple heuristic: next 5000 chars)
-            class_body = text[cm.start(): cm.start() + 5000]
+            class_body = text[cm.start() : cm.start() + 5000]
             fields: List[FieldInfo] = []
             for fm in _JAVA_FIELD_RE.finditer(class_body):
                 json_name = fm.group(1)
@@ -321,6 +362,7 @@ class GenericScanner(Scanner):
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _should_skip_url(url: str) -> bool:
     """Return True if the URL is from a known non-API domain or is a static resource."""

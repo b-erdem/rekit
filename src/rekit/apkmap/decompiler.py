@@ -118,10 +118,12 @@ def decompile(
 
     cmd = [
         jadx_bin,
-        "--no-res",         # skip resources (we only need source)
-        "--deobf",          # apply deobfuscation
-        "--threads-count", "4",
-        "--output-dir", str(output_dir),
+        "--no-res",  # skip resources (we only need source)
+        "--deobf",  # apply deobfuscation
+        "--threads-count",
+        "4",
+        "--output-dir",
+        str(output_dir),
         str(apk_path),
     ]
 

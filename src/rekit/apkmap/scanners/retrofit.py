@@ -16,7 +16,6 @@ from rekit.apkmap.scanners.base import (
     AuthPattern,
     EndpointInfo,
     InterceptorInfo,
-    ModelInfo,
     Scanner,
     ScanResult,
 )
@@ -27,10 +26,10 @@ from rekit.apkmap.scanners.base import (
 
 # Retrofit HTTP method annotations: @GET("path"), @POST("/api/v1/users"), etc.
 _HTTP_ANNOTATION_RE = re.compile(
-    r'@(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|HTTP)\s*\(\s*'
-    r'(?:value\s*=\s*)?'
+    r"@(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS|HTTP)\s*\(\s*"
+    r"(?:value\s*=\s*)?"
     r'"([^"]*)"'
-    r'\s*\)',
+    r"\s*\)",
     re.MULTILINE,
 )
 
@@ -38,24 +37,24 @@ _HTTP_ANNOTATION_RE = re.compile(
 # Captures return type and method name.  We look for it on the same or next
 # few lines after the annotation.
 _METHOD_SIG_RE = re.compile(
-    r'(?:(?:public|private|protected|abstract|suspend)\s+)*'
-    r'(?:fun\s+)?'                          # Kotlin fun keyword
-    r'(?:(@?\w[\w<>,\s\?]*?)\s+)?'          # return type (Java)
-    r'(\w+)\s*\(',                           # method name
+    r"(?:(?:public|private|protected|abstract|suspend)\s+)*"
+    r"(?:fun\s+)?"  # Kotlin fun keyword
+    r"(?:(@?\w[\w<>,\s\?]*?)\s+)?"  # return type (Java)
+    r"(\w+)\s*\(",  # method name
     re.MULTILINE,
 )
 
 # Parameter annotations: @Query("key"), @Path("id"), @Body, @Header("X-Token"), etc.
 _PARAM_ANNOTATION_RE = re.compile(
-    r'@(Query|QueryMap|QueryName|Path|Body|Header|HeaderMap|Field|FieldMap|Part|PartMap|Url)\s*'
+    r"@(Query|QueryMap|QueryName|Path|Body|Header|HeaderMap|Field|FieldMap|Part|PartMap|Url)\s*"
     r'(?:\(\s*(?:value\s*=\s*)?"([^"]*)"\s*\))?',
 )
 
 # Class-level @Headers({"Content-Type: application/json", ...})
 _CLASS_HEADERS_RE = re.compile(
-    r'@Headers\s*\(\s*\{?\s*'
+    r"@Headers\s*\(\s*\{?\s*"
     r'((?:"[^"]*"\s*,?\s*)+)'
-    r'\}?\s*\)',
+    r"\}?\s*\)",
     re.MULTILINE,
 )
 
@@ -64,15 +63,15 @@ _HEADER_VALUE_RE = re.compile(r'"([^"]+)"')
 
 # Interceptor class declarations
 _INTERCEPTOR_CLASS_RE = re.compile(
-    r'class\s+(\w+)\s*'
-    r'(?:extends\s+\w+\s*)?'
-    r'(?:implements\s+[\w,\s]*?Interceptor)',
+    r"class\s+(\w+)\s*"
+    r"(?:extends\s+\w+\s*)?"
+    r"(?:implements\s+[\w,\s]*?Interceptor)",
     re.MULTILINE,
 )
 
 # Kotlin-style interceptor
 _INTERCEPTOR_CLASS_KOTLIN_RE = re.compile(
-    r'class\s+(\w+)\s*(?:\([^)]*\))?\s*:\s*[\w,\s]*?Interceptor',
+    r"class\s+(\w+)\s*(?:\([^)]*\))?\s*:\s*[\w,\s]*?Interceptor",
     re.MULTILINE,
 )
 
@@ -102,6 +101,7 @@ _RETROFIT_BUILDER_URL_RE = re.compile(
 # Scanner
 # ---------------------------------------------------------------------------
 
+
 class RetrofitScanner(Scanner):
     """Scan decompiled Java/Kotlin for Retrofit and OkHttp annotation patterns."""
 
@@ -129,9 +129,7 @@ class RetrofitScanner(Scanner):
 
     # ---- private helpers ----
 
-    def _extract_endpoints(
-        self, text: str, rel_path: str, result: ScanResult
-    ) -> None:
+    def _extract_endpoints(self, text: str, rel_path: str, result: ScanResult) -> None:
         lines = text.split("\n")
 
         for match in _HTTP_ANNOTATION_RE.finditer(text):
@@ -146,7 +144,9 @@ class RetrofitScanner(Scanner):
 
             params = self._extract_params(context)
             headers = self._extract_inline_headers(context)
-            return_type = self._extract_return_type(context, match.end() - text.rfind("\n", 0, match.start()))
+            return_type = self._extract_return_type(
+                context, match.end() - text.rfind("\n", 0, match.start())
+            )
 
             result.endpoints.append(
                 EndpointInfo(
@@ -201,10 +201,12 @@ class RetrofitScanner(Scanner):
                 name = m.group(1)
                 line_no = text[: m.start()].count("\n") + 1
                 headers_added = self._extract_interceptor_headers(text, m.start())
-                itype = self._classify_interceptor(name, text[m.start():m.start() + 2000])
+                itype = self._classify_interceptor(
+                    name, text[m.start() : m.start() + 2000]
+                )
 
                 # Grab a compact code snippet (up to 12 lines from class start)
-                snippet_lines = text[m.start():].split("\n")[:12]
+                snippet_lines = text[m.start() :].split("\n")[:12]
                 snippet = "\n".join(snippet_lines)
 
                 result.interceptors.append(
@@ -219,13 +221,13 @@ class RetrofitScanner(Scanner):
 
                 # Check for auth patterns in interceptor
                 self._check_auth_in_interceptor(
-                    name, text[m.start():m.start() + 3000], rel_path, line_no, result
+                    name, text[m.start() : m.start() + 3000], rel_path, line_no, result
                 )
 
     @staticmethod
     def _extract_interceptor_headers(text: str, start: int) -> List[Dict[str, str]]:
         # Search within the next ~3000 chars for header additions
-        chunk = text[start: start + 3000]
+        chunk = text[start : start + 3000]
         headers: List[Dict[str, str]] = []
         for m in _ADD_HEADER_RE.finditer(chunk):
             headers.append({"name": m.group(2), "value_expr": m.group(3).strip()})
@@ -235,11 +237,16 @@ class RetrofitScanner(Scanner):
     def _classify_interceptor(name: str, context: str) -> str:
         name_lower = name.lower()
         ctx_lower = context.lower()
-        if any(kw in name_lower for kw in ("auth", "token", "credential", "bearer", "apikey")):
+        if any(
+            kw in name_lower
+            for kw in ("auth", "token", "credential", "bearer", "apikey")
+        ):
             return "auth"
         if any(kw in name_lower for kw in ("log", "debug", "trace")):
             return "logging"
-        if any(kw in ctx_lower for kw in ("authorization", "bearer ", "x-api-key", "token")):
+        if any(
+            kw in ctx_lower for kw in ("authorization", "bearer ", "x-api-key", "token")
+        ):
             return "auth"
         if "retry" in name_lower or "retry" in ctx_lower:
             return "retry"
@@ -265,9 +272,13 @@ class RetrofitScanner(Scanner):
                     source_file=f"{rel_path}:{line_no}",
                 )
             )
-        if re.search(r'x-api-key|apikey|api_key', ctx_lower):
+        if re.search(r"x-api-key|apikey|api_key", ctx_lower):
             # Try to find the actual header name
-            hdr_match = re.search(r'"((?:x-api-key|X-Api-Key|X-API-KEY|api[_-]?key)[^"]*)"', context, re.IGNORECASE)
+            hdr_match = re.search(
+                r'"((?:x-api-key|X-Api-Key|X-API-KEY|api[_-]?key)[^"]*)"',
+                context,
+                re.IGNORECASE,
+            )
             hdr_name = hdr_match.group(1) if hdr_match else "X-Api-Key"
             result.auth_patterns.append(
                 AuthPattern(
@@ -288,7 +299,7 @@ class RetrofitScanner(Scanner):
                     source_file=f"{rel_path}:{line_no}",
                 )
             )
-        if re.search(r'hmac|signature|signing', ctx_lower):
+        if re.search(r"hmac|signature|signing", ctx_lower):
             result.auth_patterns.append(
                 AuthPattern(
                     type="hmac",
@@ -298,7 +309,7 @@ class RetrofitScanner(Scanner):
                     source_file=f"{rel_path}:{line_no}",
                 )
             )
-        if re.search(r'oauth|access_token|refresh_token', ctx_lower):
+        if re.search(r"oauth|access_token|refresh_token", ctx_lower):
             result.auth_patterns.append(
                 AuthPattern(
                     type="oauth",
@@ -309,10 +320,12 @@ class RetrofitScanner(Scanner):
                 )
             )
 
-    def _extract_base_urls(
-        self, text: str, rel_path: str, result: ScanResult
-    ) -> None:
-        for pattern in (_BASE_URL_RE, _BASE_URL_ANNOTATION_RE, _RETROFIT_BUILDER_URL_RE):
+    def _extract_base_urls(self, text: str, rel_path: str, result: ScanResult) -> None:
+        for pattern in (
+            _BASE_URL_RE,
+            _BASE_URL_ANNOTATION_RE,
+            _RETROFIT_BUILDER_URL_RE,
+        ):
             for m in pattern.finditer(text):
                 url = m.group(1)
                 line_no = text[: m.start()].count("\n") + 1

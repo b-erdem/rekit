@@ -10,9 +10,8 @@ from __future__ import annotations
 
 import keyword
 import re
-import textwrap
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 from rekit.schemadiff.analyzer import (
     ComparisonResult,
@@ -42,7 +41,14 @@ def _to_python_ident(name: str) -> str:
     if ident and ident[0].isdigit():
         ident = f"f_{ident}"
     # Avoid Python keywords
-    if keyword.iskeyword(ident) or ident in ("type", "id", "list", "dict", "set", "hash"):
+    if keyword.iskeyword(ident) or ident in (
+        "type",
+        "id",
+        "list",
+        "dict",
+        "set",
+        "hash",
+    ):
         ident = f"{ident}_"
     if not ident:
         ident = "field_"
@@ -67,6 +73,7 @@ def _python_type_annotation(suggested: str, has_null: bool) -> str:
 # ---------------------------------------------------------------------------
 # Python dataclass generation
 # ---------------------------------------------------------------------------
+
 
 def generate_python(
     comparison: ComparisonResult,
@@ -93,7 +100,7 @@ def generate_python(
 
     # Header
     lines.append('"""')
-    lines.append(f"Auto-generated unified model from schemadiff.")
+    lines.append("Auto-generated unified model from schemadiff.")
     lines.append(f"Sources: {', '.join(comparison.labels)}")
     lines.append('"""')
     lines.append("")
@@ -116,14 +123,16 @@ def generate_python(
         comment = f"All sources: {', '.join(mf.sources_present)}"
         if mf.types_seen - {"null"}:
             comment += f"  [types: {', '.join(sorted(mf.types_seen - {'null'}))}]"
-        field_specs.append(_FieldSpec(
-            py_name=py_name,
-            json_name=name,
-            annotation=annotation,
-            default=None,
-            comment=comment,
-            required=not has_null,
-        ))
+        field_specs.append(
+            _FieldSpec(
+                py_name=py_name,
+                json_name=name,
+                annotation=annotation,
+                default=None,
+                comment=comment,
+                required=not has_null,
+            )
+        )
 
     # Common fields (optional with None default)
     for name, mf in sorted(comparison.common_fields.items()):
@@ -132,14 +141,16 @@ def generate_python(
         present = ", ".join(mf.sources_present)
         missing = ", ".join(mf.sources_missing)
         comment = f"Present: {present} | Missing: {missing}"
-        field_specs.append(_FieldSpec(
-            py_name=py_name,
-            json_name=name,
-            annotation=annotation,
-            default="None",
-            comment=comment,
-            required=False,
-        ))
+        field_specs.append(
+            _FieldSpec(
+                py_name=py_name,
+                json_name=name,
+                annotation=annotation,
+                default="None",
+                comment=comment,
+                required=False,
+            )
+        )
 
     # Unique fields — still include them as optional
     unique_flat: Dict[str, MergedField] = {}
@@ -151,14 +162,16 @@ def generate_python(
         py_name = _unique_name(_to_python_ident(name), used_names)
         annotation = f"Optional[{mf.suggested_type}]"
         comment = f"Only: {', '.join(mf.sources_present)}"
-        field_specs.append(_FieldSpec(
-            py_name=py_name,
-            json_name=name,
-            annotation=annotation,
-            default="None",
-            comment=comment,
-            required=False,
-        ))
+        field_specs.append(
+            _FieldSpec(
+                py_name=py_name,
+                json_name=name,
+                annotation=annotation,
+                default="None",
+                comment=comment,
+                required=False,
+            )
+        )
 
     # Write the dataclass
     lines.append("@dataclass")
@@ -168,7 +181,9 @@ def generate_python(
     lines.append(f"    Sources: {', '.join(comparison.labels)}")
     lines.append(f"    Total fields: {comparison.stats.get('total_fields', '?')}")
     lines.append(f"    Universal: {comparison.stats.get('universal_count', '?')}")
-    lines.append(f"    Type conflicts: {comparison.stats.get('type_conflict_count', '?')}")
+    lines.append(
+        f"    Type conflicts: {comparison.stats.get('type_conflict_count', '?')}"
+    )
     lines.append('    """')
     lines.append("")
 
@@ -188,10 +203,10 @@ def generate_python(
 
     # extras and raw
     lines.append("    # Source-specific fields not in the unified schema")
-    lines.append('    extras: Dict[str, Any] = field(default_factory=dict)')
+    lines.append("    extras: Dict[str, Any] = field(default_factory=dict)")
     lines.append("")
     lines.append("    # Original API response")
-    lines.append('    raw: Dict[str, Any] = field(default_factory=dict)')
+    lines.append("    raw: Dict[str, Any] = field(default_factory=dict)")
     lines.append("")
 
     # Build reverse mapping: source_label -> {source_field: unified_field}
@@ -210,7 +225,9 @@ def generate_python(
         src_map = source_maps.get(label, {})
 
         lines.append("    @classmethod")
-        lines.append(f"    def from_{safe_label}(cls, data: Dict[str, Any]) -> \"{class_name}\":")
+        lines.append(
+            f'    def from_{safe_label}(cls, data: Dict[str, Any]) -> "{class_name}":'
+        )
         lines.append(f'        """Create {class_name} from a {label} API response."""')
         lines.append("        kwargs: Dict[str, Any] = {}")
         lines.append("        extras: Dict[str, Any] = {}")
@@ -236,7 +253,7 @@ def generate_python(
         lines.append("")
         lines.append('        kwargs["extras"] = extras')
         lines.append('        kwargs["raw"] = data')
-        lines.append(f"        return cls(**kwargs)")
+        lines.append("        return cls(**kwargs)")
         lines.append("")
 
     return "\n".join(lines)
@@ -245,6 +262,7 @@ def generate_python(
 # ---------------------------------------------------------------------------
 # Mapping table generation
 # ---------------------------------------------------------------------------
+
 
 def generate_mapping_table(comparison: ComparisonResult) -> str:
     """Generate a human-readable text table showing source -> unified field mappings.
@@ -319,6 +337,7 @@ def generate_mapping_table(comparison: ComparisonResult) -> str:
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 class _FieldSpec:
     """Internal holder for generated field metadata."""

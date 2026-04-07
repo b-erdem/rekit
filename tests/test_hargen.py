@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import textwrap
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -24,7 +22,6 @@ from rekit.hargen.analyzer import (
     _group_into_endpoints,
     analyze,
     Endpoint,
-    FieldSchema,
 )
 from rekit.hargen.generator import (
     _sanitize_name,
@@ -41,11 +38,15 @@ from rekit.hargen.generator import (
 
 class TestHttpExchange:
     def test_is_json_response_application_json(self):
-        ex = HttpExchange(method="GET", url="http://a.com", content_type="application/json")
+        ex = HttpExchange(
+            method="GET", url="http://a.com", content_type="application/json"
+        )
         assert ex.is_json_response is True
 
     def test_is_json_response_vendor_json(self):
-        ex = HttpExchange(method="GET", url="http://a.com", content_type="application/vnd.api+json")
+        ex = HttpExchange(
+            method="GET", url="http://a.com", content_type="application/vnd.api+json"
+        )
         assert ex.is_json_response is True
 
     def test_is_json_response_html(self):
@@ -69,7 +70,9 @@ class TestHttpExchange:
         assert ex.is_json_request is False
 
     def test_parsed_response_json_valid(self):
-        ex = HttpExchange(method="GET", url="http://a.com", response_body='{"key": "value"}')
+        ex = HttpExchange(
+            method="GET", url="http://a.com", response_body='{"key": "value"}'
+        )
         assert ex.parsed_response_json() == {"key": "value"}
 
     def test_parsed_response_json_bytes(self):
@@ -112,12 +115,19 @@ class TestParseHar:
                         "request": {
                             "method": "GET",
                             "url": "https://api.example.com/v1/items",
-                            "headers": [{"name": "Accept", "value": "application/json"}],
+                            "headers": [
+                                {"name": "Accept", "value": "application/json"}
+                            ],
                         },
                         "response": {
                             "status": 200,
-                            "headers": [{"name": "Content-Type", "value": "application/json"}],
-                            "content": {"mimeType": "application/json", "text": '{"items": []}'},
+                            "headers": [
+                                {"name": "Content-Type", "value": "application/json"}
+                            ],
+                            "content": {
+                                "mimeType": "application/json",
+                                "text": '{"items": []}',
+                            },
                         },
                     }
                 ]
@@ -179,12 +189,17 @@ class TestParseHar:
 
     def test_base64_response_body(self, tmp_path):
         import base64
+
         encoded = base64.b64encode(b"binary data").decode()
         har = {
             "log": {
                 "entries": [
                     {
-                        "request": {"method": "GET", "url": "https://a.com/file", "headers": []},
+                        "request": {
+                            "method": "GET",
+                            "url": "https://a.com/file",
+                            "headers": [],
+                        },
                         "response": {
                             "status": 200,
                             "headers": [],
@@ -229,9 +244,7 @@ class TestParseHar:
     def test_entry_empty_url(self, tmp_path):
         har = {
             "log": {
-                "entries": [
-                    {"request": {"method": "GET", "url": "", "headers": []}}
-                ]
+                "entries": [{"request": {"method": "GET", "url": "", "headers": []}}]
             }
         }
         exchanges = parse_har(self._write_har(tmp_path, har))
@@ -243,7 +256,11 @@ class TestParseHar:
                 "entries": [
                     {
                         "startedDateTime": "2024-01-15T10:30:00Z",
-                        "request": {"method": "GET", "url": "https://a.com/", "headers": []},
+                        "request": {
+                            "method": "GET",
+                            "url": "https://a.com/",
+                            "headers": [],
+                        },
                         "response": {"status": 200, "headers": [], "content": {}},
                     }
                 ]
@@ -482,7 +499,9 @@ class TestDetectBaseUrl:
 
     def test_explicit_override(self):
         exchanges = [HttpExchange(method="GET", url="https://api.example.com/a")]
-        assert _detect_base_url(exchanges, "https://custom.com/") == "https://custom.com"
+        assert (
+            _detect_base_url(exchanges, "https://custom.com/") == "https://custom.com"
+        )
 
 
 class TestGroupIntoEndpoints:
@@ -528,8 +547,12 @@ class TestAnalyze:
 
     def test_basic_analysis(self):
         exchanges = [
-            self._make_exchange("GET", "/api/v1/items", body={"id": 1, "name": "Widget"}),
-            self._make_exchange("GET", "/api/v1/items", body={"id": 2, "name": "Gadget"}),
+            self._make_exchange(
+                "GET", "/api/v1/items", body={"id": 1, "name": "Widget"}
+            ),
+            self._make_exchange(
+                "GET", "/api/v1/items", body={"id": 2, "name": "Gadget"}
+            ),
         ]
         spec = analyze(exchanges)
         assert spec.base_url == "https://api.example.com"

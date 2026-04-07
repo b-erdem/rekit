@@ -15,8 +15,10 @@ __all__ = [
 def __getattr__(name: str):
     if name == "CaptureSession":
         from rekit.apktap.capture import CaptureSession
+
         return CaptureSession
     if name == "save_har":
         from rekit.apktap.capture import save_har
+
         return save_har
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

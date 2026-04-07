@@ -7,7 +7,6 @@ import pytest
 from rekit.ja3probe.fingerprints import FingerprintProfile, PROFILES
 from rekit.ja3probe.prober import (
     ProbeResult,
-    AnalysisReport,
     _detect_challenge,
     analyze_results,
 )
@@ -107,9 +106,7 @@ class TestDetectChallenge:
         assert system == "Cloudflare"
 
     def test_datadome_header(self):
-        is_chal, system = _detect_challenge(
-            403, {"x-datadome": "1"}, "blocked"
-        )
+        is_chal, system = _detect_challenge(403, {"x-datadome": "1"}, "blocked")
         assert is_chal is True
         assert system == "DataDome"
 
@@ -127,9 +124,7 @@ class TestDetectChallenge:
         assert system == "Akamai Bot Manager"
 
     def test_perimeterx_header_with_403(self):
-        is_chal, system = _detect_challenge(
-            403, {"x-px-mid": "abc"}, "blocked"
-        )
+        is_chal, system = _detect_challenge(403, {"x-px-mid": "abc"}, "blocked")
         assert is_chal is True
         assert system == "PerimeterX"
 
@@ -165,9 +160,7 @@ class TestDetectChallenge:
         assert is_chal is True
 
     def test_429_with_protection_header(self):
-        is_chal, system = _detect_challenge(
-            429, {"x-datadome-cid": "abc"}, ""
-        )
+        is_chal, system = _detect_challenge(429, {"x-datadome-cid": "abc"}, "")
         assert is_chal is True
         assert system == "DataDome"
 
@@ -207,11 +200,17 @@ class TestAnalyzeResults:
     def test_all_rejected(self):
         results = [
             self._make_result(
-                "chrome_120", False, status=403, challenge=True,
+                "chrome_120",
+                False,
+                status=403,
+                challenge=True,
                 headers={"cf-ray": "abc"},
             ),
             self._make_result(
-                "safari_17_0", False, status=403, challenge=True,
+                "safari_17_0",
+                False,
+                status=403,
+                challenge=True,
                 headers={"cf-ray": "def"},
             ),
         ]
@@ -224,7 +223,10 @@ class TestAnalyzeResults:
         results = [
             self._make_result("chrome_120", True, headers={"cf-ray": "x"}),
             self._make_result(
-                "python_requests", False, status=403, challenge=True,
+                "python_requests",
+                False,
+                status=403,
+                challenge=True,
                 headers={"cf-ray": "y"},
             ),
         ]
@@ -255,7 +257,10 @@ class TestAnalyzeResults:
     def test_datadome_detection(self):
         results = [
             self._make_result(
-                "chrome_120", False, status=403, challenge=True,
+                "chrome_120",
+                False,
+                status=403,
+                challenge=True,
                 headers={"x-datadome": "1"},
             ),
         ]

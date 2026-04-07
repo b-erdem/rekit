@@ -46,7 +46,8 @@ def detect(
         15.0, "--timeout", "-t", help="HTTP request timeout in seconds"
     ),
     follow_redirects: bool = typer.Option(
-        True, "--follow-redirects/--no-follow-redirects",
+        True,
+        "--follow-redirects/--no-follow-redirects",
         help="Whether to follow HTTP redirects",
     ),
 ) -> None:

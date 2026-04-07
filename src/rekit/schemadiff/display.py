@@ -29,6 +29,7 @@ _CONFLICT = Text("\u26a0", style="bold red")
 # Main comparison table
 # ---------------------------------------------------------------------------
 
+
 def render_comparison(
     result: ComparisonResult,
     labels: Optional[List[str]] = None,
@@ -66,8 +67,12 @@ def render_comparison(
     conflict_names = {tc.field_name for tc in result.type_conflicts}
 
     # Render rows grouped: universal -> common -> unique
-    _add_field_rows(table, result.universal_fields, labels, "green", conflict_names, "universal")
-    _add_field_rows(table, result.common_fields, labels, "yellow", conflict_names, "common")
+    _add_field_rows(
+        table, result.universal_fields, labels, "green", conflict_names, "universal"
+    )
+    _add_field_rows(
+        table, result.common_fields, labels, "yellow", conflict_names, "common"
+    )
 
     # Unique fields — flatten from per-source dict
     unique_flat: Dict[str, MergedField] = {}
@@ -98,7 +103,9 @@ def _add_field_rows(
 
     # Section separator
     num_cols = 2 + len(labels)
-    section_label = Text(f"  {category.upper()} FIELDS ({len(fields)})", style=f"bold {row_style}")
+    section_label = Text(
+        f"  {category.upper()} FIELDS ({len(fields)})", style=f"bold {row_style}"
+    )
     table.add_row(section_label, *[""] * (num_cols - 1), style="dim")
 
     for name in sorted(fields.keys()):
@@ -148,17 +155,20 @@ def _render_summary(result: ComparisonResult) -> None:
         summary_lines.append(f"[bold red]Type conflicts:[/bold red] {conflicts}")
 
     console.print()
-    console.print(Panel(
-        "\n".join(summary_lines),
-        title="Summary",
-        border_style="cyan",
-        expand=False,
-    ))
+    console.print(
+        Panel(
+            "\n".join(summary_lines),
+            title="Summary",
+            border_style="cyan",
+            expand=False,
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
 # Compact field matrix
 # ---------------------------------------------------------------------------
+
 
 def render_field_matrix(result: ComparisonResult) -> None:
     """Render a compact matrix view of all fields across all sources.

@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
-import pytest
 
 # Import the regex patterns directly from scanner modules
 from rekit.apkmap.scanners.retrofit import (
@@ -17,7 +14,6 @@ from rekit.apkmap.scanners.retrofit import (
     _ADD_HEADER_RE,
     _BASE_URL_RE,
     _RETROFIT_BUILDER_URL_RE,
-    RetrofitScanner,
 )
 from rekit.apkmap.scanners.okhttp import (
     _REQUEST_BUILDER_RE,
@@ -31,7 +27,6 @@ from rekit.apkmap.scanners.okhttp import (
     _INTERCEPTOR_IMPL_KOTLIN_RE,
     _CERT_PINNER_RE,
     _CERT_PIN_ADD_RE,
-    OkHttpScanner,
 )
 from rekit.apkmap.scanners.flutter import (
     _DART_HTTP_RE,
@@ -44,7 +39,6 @@ from rekit.apkmap.scanners.flutter import (
     _URL_CONSTANT_RE,
     _API_PATH_RE,
     _is_api_url,
-    FlutterScanner,
 )
 from rekit.apkmap.scanners.generic import (
     _URL_RE,
@@ -59,9 +53,12 @@ from rekit.apkmap.scanners.generic import (
     _JAVA_FIELD_RE,
     _GRAPHQL_RE,
     _should_skip_url,
-    GenericScanner,
 )
-from rekit.apkmap.scanners.base import ScanResult, EndpointInfo, ModelInfo, InterceptorInfo
+from rekit.apkmap.scanners.base import (
+    ScanResult,
+    EndpointInfo,
+    ModelInfo,
+)
 
 
 # =========================================================================
@@ -532,9 +529,7 @@ class TestShouldSkipUrl:
 
 class TestScanResultMerge:
     def test_merge_deduplicates_endpoints(self):
-        r1 = ScanResult(
-            endpoints=[EndpointInfo(method="GET", path="/api/users")]
-        )
+        r1 = ScanResult(endpoints=[EndpointInfo(method="GET", path="/api/users")])
         r2 = ScanResult(
             endpoints=[
                 EndpointInfo(method="GET", path="/api/users"),

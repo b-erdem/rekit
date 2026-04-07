@@ -26,7 +26,7 @@ from rekit.apkmap.scanners.base import (
 
 # Request.Builder().url("...").method("POST", body).header("K", "V")
 _REQUEST_BUILDER_RE = re.compile(
-    r'(?:new\s+)?Request\.Builder\(\)',
+    r"(?:new\s+)?Request\.Builder\(\)",
     re.MULTILINE,
 )
 
@@ -37,7 +37,7 @@ _URL_CALL_RE = re.compile(
 
 # .url(variable) — capture variable name
 _URL_VAR_RE = re.compile(
-    r'\.url\s*\(\s*(\w+)\s*\)',
+    r"\.url\s*\(\s*(\w+)\s*\)",
 )
 
 # .header("Name", "Value") / .addHeader("Name", "Value")
@@ -48,38 +48,38 @@ _HEADER_CALL_RE = re.compile(
 # .method("POST", ...) or .post(body) / .get() / .put(body) / .delete(body)
 _METHOD_CALL_RE = re.compile(
     r'\.(?:method\s*\(\s*"(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)"'
-    r'|'
-    r'(get|post|put|delete|patch|head)\s*\()',
+    r"|"
+    r"(get|post|put|delete|patch|head)\s*\()",
     re.IGNORECASE,
 )
 
 # OkHttpClient.Builder() chain — look for addInterceptor / addNetworkInterceptor
 _CLIENT_BUILDER_RE = re.compile(
-    r'OkHttpClient\.Builder\(\)',
+    r"OkHttpClient\.Builder\(\)",
 )
 
 _ADD_INTERCEPTOR_RE = re.compile(
-    r'\.add(?:Network)?Interceptor\s*\(\s*(?:new\s+)?(\w+)',
+    r"\.add(?:Network)?Interceptor\s*\(\s*(?:new\s+)?(\w+)",
 )
 
 # newCall(request).execute() or enqueue()
 _NEW_CALL_RE = re.compile(
-    r'\.newCall\s*\(\s*(\w+)\s*\)\s*\.\s*(execute|enqueue)',
+    r"\.newCall\s*\(\s*(\w+)\s*\)\s*\.\s*(execute|enqueue)",
 )
 
 # Interceptor class declaration (Java)
 _INTERCEPTOR_IMPL_RE = re.compile(
-    r'class\s+(\w+)\s+implements\s+[\w,\s]*Interceptor',
+    r"class\s+(\w+)\s+implements\s+[\w,\s]*Interceptor",
 )
 
 # Interceptor class declaration (Kotlin)
 _INTERCEPTOR_IMPL_KOTLIN_RE = re.compile(
-    r'class\s+(\w+)\s*(?:\([^)]*\))?\s*:\s*[\w,\s]*Interceptor',
+    r"class\s+(\w+)\s*(?:\([^)]*\))?\s*:\s*[\w,\s]*Interceptor",
 )
 
 # CertificatePinner.Builder()
 _CERT_PINNER_RE = re.compile(
-    r'CertificatePinner\.Builder\(\)',
+    r"CertificatePinner\.Builder\(\)",
 )
 
 # .add("hostname", "sha256/...")
@@ -103,7 +103,11 @@ class OkHttpScanner(Scanner):
                 continue
 
             # Quick relevance check — skip files with no OkHttp references
-            if "okhttp" not in text.lower() and "OkHttp" not in text and "Request.Builder" not in text:
+            if (
+                "okhttp" not in text.lower()
+                and "OkHttp" not in text
+                and "Request.Builder" not in text
+            ):
                 continue
 
             rel = str(fpath.relative_to(source_dir))
@@ -127,7 +131,7 @@ class OkHttpScanner(Scanner):
             semi = text.find(";", m.start(), chain_end)
             if semi != -1:
                 chain_end = semi + 1
-            chain = text[m.start():chain_end]
+            chain = text[m.start() : chain_end]
 
             url = self._extract_url(chain)
             method = self._extract_method(chain)
@@ -173,7 +177,7 @@ class OkHttpScanner(Scanner):
         """Find OkHttpClient.Builder() chains and registered interceptors."""
         for m in _CLIENT_BUILDER_RE.finditer(text):
             chain_end = min(m.start() + 1500, len(text))
-            chain = text[m.start():chain_end]
+            chain = text[m.start() : chain_end]
 
             for im in _ADD_INTERCEPTOR_RE.finditer(chain):
                 interceptor_name = im.group(1)
@@ -183,7 +187,7 @@ class OkHttpScanner(Scanner):
                         name=interceptor_name,
                         type="custom",
                         source_file=f"{rel_path}:{line_no}",
-                        code_snippet=chain[im.start():im.start() + 120].strip(),
+                        code_snippet=chain[im.start() : im.start() + 120].strip(),
                     )
                 )
 
@@ -196,10 +200,12 @@ class OkHttpScanner(Scanner):
                 name = m.group(1)
                 line_no = text[: m.start()].count("\n") + 1
                 # Extract headers from intercept method body
-                chunk = text[m.start(): m.start() + 3000]
+                chunk = text[m.start() : m.start() + 3000]
                 headers: List[Dict[str, str]] = []
                 for hm in _HEADER_CALL_RE.finditer(chunk):
-                    headers.append({"name": hm.group(1), "value_expr": hm.group(2).strip()})
+                    headers.append(
+                        {"name": hm.group(1), "value_expr": hm.group(2).strip()}
+                    )
 
                 itype = _classify(name, chunk)
                 snippet_lines = chunk.split("\n")[:12]
@@ -234,7 +240,7 @@ class OkHttpScanner(Scanner):
                     source_file=f"{rel_path}:{line_no}",
                 )
             )
-        if re.search(r'x-api-key|apikey|api[_-]key', ctx_lower):
+        if re.search(r"x-api-key|apikey|api[_-]key", ctx_lower):
             result.auth_patterns.append(
                 AuthPattern(
                     type="api_key",
@@ -245,12 +251,10 @@ class OkHttpScanner(Scanner):
                 )
             )
 
-    def _scan_cert_pinning(
-        self, text: str, rel_path: str, result: ScanResult
-    ) -> None:
+    def _scan_cert_pinning(self, text: str, rel_path: str, result: ScanResult) -> None:
         """Find certificate pinning configurations."""
         for m in _CERT_PINNER_RE.finditer(text):
-            chunk = text[m.start(): m.start() + 1000]
+            chunk = text[m.start() : m.start() + 1000]
             for pm in _CERT_PIN_ADD_RE.finditer(chunk):
                 line_no = text[: m.start() + pm.start()].count("\n") + 1
                 result.auth_patterns.append(
@@ -267,6 +271,7 @@ class OkHttpScanner(Scanner):
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _java_kotlin_files(source_dir: Path):
     """Yield .java and .kt files under *source_dir*."""

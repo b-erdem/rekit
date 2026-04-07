@@ -17,7 +17,10 @@ class IncapsulaDetector(Detector):
 
     _BODY_PATTERNS = [
         (re.compile(r"incapsula", re.I), "Incapsula reference in body"),
-        (re.compile(r"_Incapsula_Resource", re.I), "_Incapsula_Resource script reference"),
+        (
+            re.compile(r"_Incapsula_Resource", re.I),
+            "_Incapsula_Resource script reference",
+        ),
         (re.compile(r"imperva", re.I), "Imperva reference in body"),
     ]
 

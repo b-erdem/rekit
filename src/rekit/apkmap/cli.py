@@ -9,13 +9,18 @@ Usage:
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+from rich.progress import (
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    BarColumn,
+    TimeElapsedColumn,
+)
 
 from rekit.apkmap.scanners import ALL_SCANNERS, ScanResult
 from rekit.apkmap.decompiler import decompile, JadxNotFoundError, DecompilationError
@@ -33,9 +38,15 @@ _console = Console(stderr=True)
 
 @app.command("scan")
 def scan(
-    path: Path = typer.Argument(..., help="Path to APK file or decompiled source directory"),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Write JSON report to this file"),
-    fmt: str = typer.Option("table", "--format", "-f", help="Output format: table, json"),
+    path: Path = typer.Argument(
+        ..., help="Path to APK file or decompiled source directory"
+    ),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o", help="Write JSON report to this file"
+    ),
+    fmt: str = typer.Option(
+        "table", "--format", "-f", help="Output format: table, json"
+    ),
     jadx_path: str = typer.Option("jadx", "--jadx-path", help="Path to jadx binary"),
 ) -> None:
     """Scan an APK or decompiled source directory for API patterns."""
@@ -58,7 +69,9 @@ def _run_scan(
     # ---- Determine source directory ----
     if path.is_file():
         if path.suffix.lower() not in (".apk",):
-            _console.print(f"[red]Error:[/red] expected an .apk file or a directory, got: {path.name}")
+            _console.print(
+                f"[red]Error:[/red] expected an .apk file or a directory, got: {path.name}"
+            )
             raise typer.Exit(code=1)
 
         try:
@@ -72,7 +85,9 @@ def _run_scan(
     elif path.is_dir():
         source_dir = path
     else:
-        _console.print(f"[red]Error:[/red] path is neither a file nor a directory: {path}")
+        _console.print(
+            f"[red]Error:[/red] path is neither a file nor a directory: {path}"
+        )
         raise typer.Exit(code=1)
 
     # ---- Run scanners ----
@@ -112,7 +127,9 @@ def _run_scan(
         if output:
             # Also write JSON to the file when --output is given with table format
             data = generate_json(merged)
-            output.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+            output.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
             _console.print(f"[green]JSON report also written to[/green] {output}")
     else:
         _console.print(f"[red]Unknown format:[/red] {fmt}. Use 'table' or 'json'.")
