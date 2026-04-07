@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rekit"
-version = "0.1.0"
-description = "Reverse Engineering Toolkit for Mobile APIs"
+version = "0.2.0"
+description = "Reverse Engineering Toolkit for Mobile APIs — 14 tools for the full RE pipeline"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
 authors = [{ name = "Baris Erdem" }]
-keywords = ["reverse-engineering", "api", "mobile", "mitm", "apk", "tls"]
+keywords = ["reverse-engineering", "api", "mobile", "mitm", "apk", "tls", "frida", "protobuf", "grpc", "bot-detection", "har", "jwt", "react-native"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
